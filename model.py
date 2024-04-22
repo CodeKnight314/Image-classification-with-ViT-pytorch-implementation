@@ -3,6 +3,9 @@ import torch.nn as nn
 from typing import Tuple, Union
 import math
 from utils.patches import * 
+import matplotlib.pyplot as plt
+from tqdm import tqdm 
+from torchsummary import summary
 
 class MSA(nn.Module): 
     def __init__(self, d_model : int, head : int):
@@ -110,21 +113,34 @@ class ViT(nn.Module):
 
         return self.classifier_head(x[:, 0, :])
 
-def main(): 
-    batch_size = 1
-    channels = 3 
-    img_h = 128 
-    img_w = 128
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    x = torch.randn((batch_size, channels, img_h, img_w), device = device)
-
+def main():  
     model = ViT().to(device)
+    for i in tqdm(range(9)):
+        runtime_dim = []
+        for j in range(3):
+            batch_size = 2**i
+            channels = 3 
+            img_h = 64 * 2**j
+            img_w = 64 * 2**j
 
-    y = model(x)
+            device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    print(y.shape)
+            x = torch.randn((batch_size, channels, img_h, img_w), device = device)
+            
+            start = time.time()
+            y = model(x)
+            end = time.time() - start
+
+            runtime_dim.append(end)
+
+        plt.scatter([2**i for i in range(len(runtime_dim))], runtime_dim)
+        
+    plt.title("Run Time of Model")
+    plt.xlabel("Batch Size")
+    plt.ylabel("Runtime (seconds)")
+    plt.show()
+
+    summary(model, input_data=(3,128,128))
 
 if __name__ == "__main__": 
     main()
