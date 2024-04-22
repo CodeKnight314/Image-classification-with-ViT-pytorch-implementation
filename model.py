@@ -98,7 +98,7 @@ class ViT(nn.Module):
         self.classifier_head = nn.Sequential(*[nn.LayerNorm(self.d_model),
                                                nn.Linear(self.d_model, num_classes),
                                                nn.Dropout(0.1),
-                                               nn.Softmax()])
+                                               nn.Softmax(dim=-1)])
     
     def forward(self, x): 
         batch_size = x.size(0)
@@ -109,19 +109,23 @@ class ViT(nn.Module):
 
         concat_patches = torch.cat([patched_image, class_tokens], dim = 1)
 
-        x = self.encoder_stack(self.dropout(self.pos_encod + concat_patches))
+        x = self.encoder_stack(self.pos_encod + concat_patches)
 
         return self.classifier_head(x[:, 0, :])
 
 def main():  
-    model = ViT().to(device)
-    for i in tqdm(range(9)):
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    arr = []
+    for i in tqdm(range(1,6)):
         runtime_dim = []
         for j in range(3):
             batch_size = 2**i
             channels = 3 
             img_h = 64 * 2**j
             img_w = 64 * 2**j
+
+            model = ViT((channels, img_h, img_w)).to(device)
 
             device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -132,19 +136,14 @@ def main():
             end = time.time() - start
 
             runtime_dim.append(end)
-
-        plt.scatter([2**i for i in range(len(runtime_dim))], runtime_dim)
         
-    plt.title("Run Time of Model")
-    plt.xlabel("Batch Size")
-    plt.ylabel("Runtime (seconds)")
-    plt.show()
+        arr.append(runtime_dim)
 
-    summary(model, input_data=(3,128,128))
+        plt.scatter([2**i for i in range(len(runtime_dim))], runtime_dim)    
+        plt.title("Run Time of Model")
+        plt.xlabel("Batch Size")
+        plt.ylabel("Runtime (seconds)")
+        plt.savefig(f"Model_{2**i}.png")
 
 if __name__ == "__main__": 
     main()
-
-
-
-
