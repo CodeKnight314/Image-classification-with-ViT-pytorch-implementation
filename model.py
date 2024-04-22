@@ -97,8 +97,7 @@ class ViT(nn.Module):
 
         self.classifier_head = nn.Sequential(*[nn.LayerNorm(self.d_model),
                                                nn.Linear(self.d_model, num_classes),
-                                               nn.Dropout(0.1),
-                                               nn.Softmax(dim=-1)])
+                                               nn.Dropout(0.3)])
     
     def forward(self, x): 
         batch_size = x.size(0)
