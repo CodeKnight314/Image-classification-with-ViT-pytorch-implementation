@@ -4,7 +4,6 @@ from typing import Tuple, Union
 import math
 from utils.patches import * 
 
-
 class MSA(nn.Module): 
     def __init__(self, d_model : int, head : int):
         assert d_model % head == 0, f"[Error] d_model {d_model} is not divisible by head {head} in MSA Module"
@@ -94,9 +93,9 @@ class ViT(nn.Module):
         self.encoder_stack = nn.Sequential(*[EncoderBlock(self.d_model, self.d_model * 4, self.d_model, 12, dropout=0.3) for _ in range(layers)])
 
         self.classifier_head = nn.Sequential(*[nn.LayerNorm(self.d_model),
-                                               nn.Linear(self.d_model, num_classes)])
-        
-        self.dropout = nn.Dropout(0.1)
+                                               nn.Linear(self.d_model, num_classes),
+                                               nn.Dropout(0.1),
+                                               nn.Softmax()])
     
     def forward(self, x): 
         batch_size = x.size(0)
@@ -109,7 +108,7 @@ class ViT(nn.Module):
 
         x = self.encoder_stack(self.dropout(self.pos_encod + concat_patches))
 
-        return self.classifier_head(x)
+        return self.classifier_head(x[:, 0, :])
 
 def main(): 
     batch_size = 1
