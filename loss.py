@@ -1,5 +1,7 @@
 import torch 
 import torch.nn as nn 
+import torch.optim as opt 
+from typing import Tuple
 
 class CrossEntropyLoss(nn.Module):
     def __init__(self, reduction = "mean"):
@@ -34,6 +36,30 @@ class HingeLoss(nn.Module):
         loss = (1 - labels * probs).sum(dim=-1).mean().item()
         return max(0, loss)
 
+def get_optimizer(model, lr : float, betas : Tuple[float], weight_decay : float): 
+    """
+    Helper function for defining optimizer 
 
+    Args: 
+        model : the model associated with the given optimizer 
+        lr (float): learning rate for the optimizer 
+        betas (Tuple[float]): a pair of floats
+        weight_decay (float): determine rate of weight decay
+
+    Returns:
+        torch.optim : optimizer with the given parameters
+    """
+    return opt.Adam(model.parameters(), lr = lr, betas=betas, weight_decay=weight_decay)
+
+def get_scheduler(optimizer : torch.optim, step_size : int, gamma : float): 
+    """
+    Helper function for defining learning rate scheduler -> may try to define my own for fun but who knows?
+
+    Args: 
+        optimizer (torch.optim): optimizer associated with the given learning rate scheduler 
+        step_size (int): length of interval between each learning rate reduction 
+        gamme (float): the rate at which the optimizer's learning rate decreases. New learning rate = lr * gamma at each step size interval
+    """
+    return opt.lr_scheduler.StepLR(optimizer=optimizer, step_size=step_size, gamma=gamma)
 
 
