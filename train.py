@@ -21,7 +21,7 @@ def train_step(model, opt, data, loss_fn):
     opt.step() 
     return loss.item()
 
-def train(model, opt, scheduler, logger, loss_fn, epochs): 
+def train(model, opt, scheduler, dataloader, logger, loss_fn, epochs): 
     """
     """
     model.train() 
@@ -31,7 +31,7 @@ def train(model, opt, scheduler, logger, loss_fn, epochs):
     for epoch in range(epochs):
 
         batched_values = []
-        for i, data in tqdm(enumerate(data), desc=f"[Training: {epoch+1}/{epochs}]"): 
+        for i, data in tqdm(enumerate(dataloader), desc=f"[Training: {epoch+1}/{epochs}]"): 
             start = time.time()
             loss = train_step(model, opt, data, loss_fn)
             end = time.time() - start
@@ -50,9 +50,9 @@ def train(model, opt, scheduler, logger, loss_fn, epochs):
         scheduler.step()
 
 def main(): 
-    dataLoader = load_dataset()
+    dataloader = load_dataset()
 
-    model = ViT((3, configs.img_height, configs.img_width), patch_size=8, layers=12, num_classes=12).to(configs.device)
+    model = ViT((3, configs.img_height, configs.img_width), patch_size=8, layers=12, num_classes=configs.num_class).to(configs.device)
 
     optimizer = get_optimizer(model, lr = 1e-4, betas=(0.9, 0.999), weight_decay=1e-3)
 
@@ -62,7 +62,7 @@ def main():
 
     loss_fn = CrossEntropyLoss()
 
-    train(model, optimizer, scheduler, logger, loss_fn)
+    train(model, optimizer, scheduler, dataloader, logger, loss_fn)
 
 if __name__ == "__main__": 
     main()
