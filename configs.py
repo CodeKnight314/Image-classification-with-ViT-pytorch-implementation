@@ -4,8 +4,9 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 root_dir = ""
 
-img_height = ""
-img_width = ""
+img_height = 256
+img_width = 256
+
 data_transform = ""
 
 model_save_path = ""
