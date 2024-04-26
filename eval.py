@@ -39,7 +39,7 @@ def eval_metrics_bundle(conf_matrix : torch.Tensor, avg_mode = "macro"):
 
     accuracy = (tp.sum() + tn.sum()).float() / (tp.sum() + fn.sum() + fp.sum() + tn.sum()).float()
 
-    return precision, recall, accuracy
+    return round(precision.item(), 4), round(recall.item(), 4), round(accuracy.item(), 4)
 
 
 def eval_step(model, data, loss_fn): 
