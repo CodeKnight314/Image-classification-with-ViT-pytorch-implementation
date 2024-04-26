@@ -15,3 +15,5 @@ batch_size = 32
 epochs = 20 
 
 output_dir = ""
+
+num_class = None
