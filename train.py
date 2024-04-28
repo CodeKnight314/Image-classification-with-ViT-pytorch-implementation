@@ -10,6 +10,17 @@ from utils.log_writer import LOGWRITER
 
 def train_step(model, opt, data, loss_fn):
     """
+    Executes a single training step, which includes forward passing the data through the model, calculating the loss,
+    performing backpropagation, and updating the model's weights.
+
+    Args:
+        model (torch.nn.Module): The model being trained.
+        opt (torch.optim.Optimizer): Optimizer used to update the model parameters.
+        data (tuple): A tuple containing the input data and labels. Expects (image, label).
+        loss_fn (callable): The loss function used to evaluate the model's predictions against the true labels.
+
+    Returns:
+        float: The loss value calculated for this training step.
     """
     opt.zero_grad()
 
@@ -23,6 +34,17 @@ def train_step(model, opt, data, loss_fn):
 
 def train(model, opt, scheduler, dataloader, logger, loss_fn, epochs): 
     """
+    Manages the training process over multiple epochs. It logs training progress, updates the learning rate, 
+    and saves the model checkpoints when a new best is achieved based on validation loss.
+
+    Args:
+        model (torch.nn.Module): The model to be trained.
+        opt (torch.optim.Optimizer): Optimizer used to update the model's weights.
+        scheduler (torch.optim.lr_scheduler): Scheduler to adjust the optimizer's learning rate.
+        dataloader (torch.utils.data.DataLoader): DataLoader providing the training data.
+        logger (LOGWRITER): Logger instance used to log training metrics.
+        loss_fn (callable): Loss function used to compute the model's prediction error.
+        epochs (int): Total number of epochs to train the model.
     """
     model.train() 
 
