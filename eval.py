@@ -10,6 +10,16 @@ from utils.log_writer import *
 
 def confusion_matrix(predictions : torch.Tensor, labels : torch.Tensor, num_class : int):
     """
+    Computes the confusion matrix from predictions and labels.
+
+    Args:
+        predictions (torch.Tensor): The tensor containing the predicted class indices for each example.
+        labels (torch.Tensor): The tensor containing the actual class indices for each example.
+        num_class (int): The total number of classes.
+
+    Returns:
+        torch.Tensor: A confusion matrix of shape (num_class, num_class) where the element at position (i, j)
+                      represents the number of instances of class i predicted as class j.
     """
     conf_matrix = torch.zeros((num_class, num_class), dtype = torch.int64)
 
@@ -20,6 +30,14 @@ def confusion_matrix(predictions : torch.Tensor, labels : torch.Tensor, num_clas
 
 def eval_metrics_bundle(conf_matrix : torch.Tensor, avg_mode = "macro"):
     """
+    Calculates precision, recall, and accuracy from a confusion matrix using either macro or micro averaging.
+
+    Args:
+        conf_matrix (torch.Tensor): The confusion matrix from which to calculate the metrics.
+        avg_mode (str): The averaging mode, 'macro' (default) or 'micro', determining how metrics are computed.
+
+    Returns:
+        Tuple[float, float, float]: A tuple containing the precision, recall, and accuracy, each rounded to four decimal places.
     """
     tp = torch.diag(conf_matrix)
 
@@ -44,8 +62,16 @@ def eval_metrics_bundle(conf_matrix : torch.Tensor, avg_mode = "macro"):
 
 def eval_step(model, data, loss_fn): 
     """
-    """
+    Performs a single evaluation step, including forward pass, loss computation, and metric evaluation.
 
+    Args:
+        model (nn.Module): The model to evaluate.
+        data (tuple): A tuple containing the inputs and labels from the dataloader.
+        loss_fn (callable): The loss function to use for evaluating model performance.
+
+    Returns:
+        Tuple[float, float, float, float]: A tuple containing the loss, precision, recall, and accuracy, each rounded to four decimal places.
+    """
     image, labels = data
     predictions = model(image)
     loss = loss_fn(predictions, labels)
@@ -57,6 +83,18 @@ def eval_step(model, data, loss_fn):
     return round(loss.item(), 4), round(precision.item(), 4), round(recall.item(), 4), round(accuracy.item(), 4)
 
 def evaluation(model, logger, loss_fn, dataloader): 
+    """
+    Evaluates the model over an entire dataset.
+
+    Args:
+        model (nn.Module): The model to be evaluated.
+        logger (LOGWRITER): Logger instance to record evaluation results.
+        loss_fn (callable): The loss function to use.
+        dataloader (DataLoader): The DataLoader providing the dataset.
+
+    Side Effects:
+        Logs the average metrics for the evaluation to the logger.
+    """
     model.eval()
 
     batched_values = [] 
