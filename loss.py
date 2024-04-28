@@ -9,6 +9,16 @@ class CrossEntropyLoss(nn.Module):
         self.reduction = reduction
     
     def forward(self, logits : torch.Tensor, labels : torch.Tensor):
+        """
+        Calculates the cross-entropy loss between logits and true labels.
+
+        Args:
+            logits (torch.Tensor): The logits output from a model (unnormalized scores).
+            labels (torch.Tensor): The true labels, expected to be one-hot encoded.
+
+        Returns:
+            float: The calculated loss value, averaged over the batch if reduction is 'mean', otherwise the sum.
+        """
         assert logits.shape == labels.shape and logits.size(1) != 1, "[ERROR] Logits and labels have incompatiable shapes or logits are shaped for binary classification."
         probs = torch.softmax(logits, dim=-1)
         log_probs = torch.log(probs + 1e-9)
@@ -20,6 +30,16 @@ class BCELoss(nn.Module):
         super().__init__()
 
     def forward(self, logits : torch.Tensor, labels : torch.Tensor): 
+        """
+        Calculates the binary cross-entropy loss between logits and true labels.
+
+        Args:
+            logits (torch.Tensor): The logits output from a model (unnormalized scores), expected to have shape [N, 1].
+            labels (torch.Tensor): The true labels, expected to have the same shape as logits.
+
+        Returns:
+            float: The calculated loss value, averaged over all elements in the batch.
+        """
         assert logits.shape == labels.shape and logits.size(1) == 1, "[ERROR] Logits and labels have incompatiable shapes or logits are shaped for multi-class classification."
         probs = torch.sigmoid(logits)
         probs_log = torch.log(probs + 1e-9)
@@ -31,6 +51,16 @@ class HingeLoss(nn.Module):
         super().__init__() 
     
     def forward(self, logits : torch.Tensor, labels : torch.Tensor): 
+        """
+        Calculates the hinge loss for binary classification.
+
+        Args:
+            logits (torch.Tensor): The logits or scores output from a model.
+            labels (torch.Tensor): The true labels, expected to have the same shape as logits and values of 1 or -1.
+
+        Returns:
+            float: The calculated loss value, averaged over all elements in the batch. The loss is constrained to be non-negative.
+        """
         assert logits.shape == labels.shape, "[ERROR] Logits and labels have incompatiable shapes."
         probs = torch.tanh(logits)
         loss = (1 - labels * probs).sum(dim=-1).mean().item()
