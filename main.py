@@ -15,6 +15,28 @@ def train_and_evaluation(model : ViT,
                          loss_fn : CrossEntropyLoss, 
                          epochs : int): 
     """
+    Conducts training and validation of a Vision Transformer model over a specified number of epochs, logs the 
+    performance metrics, and saves the best model based on validation loss.
+
+    Args:
+        model (ViT): The Vision Transformer model to be trained and evaluated.
+        optimizer (torch.optim): The optimizer to use for training the model.
+        scheduler (torch.optim.lr_scheduler): The learning rate scheduler to adjust the learning rate during training.
+        train_dl (DataLoader): The DataLoader for the training data.
+        valid_dl (DataLoader): The DataLoader for the validation data.
+        logger (LOGWRITER): An instance of LOGWRITER for logging training and validation metrics.
+        loss_fn (CrossEntropyLoss): The loss function used for training the model.
+        epochs (int): The total number of epochs to train the model.
+
+    Processing:
+        - For each epoch, iterates through the training data to compute the loss and update the model parameters.
+        - Validates the model on the validation data to compute metrics like loss, precision, recall, and accuracy.
+        - Logs the average metrics for each epoch and checks for improvement in validation loss to save the best model.
+        - Adjusts the learning rate based on the scheduler.
+        
+    Side Effects:
+        - Saves the best model's weights to a specified directory.
+        - Logs the training and validation metrics for each epoch.
     """
     
     best_loss = float('inf')
