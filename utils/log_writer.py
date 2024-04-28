@@ -13,7 +13,11 @@ class LOGWRITER():
 
     def write(self, epoch, **kwargs):
         """
-        Documents losses and other values for every epoch of training.
+        Logs the specified epoch's metrics and other key-value paired information to the log file.
+
+        Args:
+            epoch (int): The current epoch number during training.
+            **kwargs: Arbitrary keyword arguments representing various metrics (like loss, accuracy, etc.) to log.
         """
         with open(self.output_file_dir, 'a') as writer: 
             log = f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [{epoch}/{self.total_epochs}] "
@@ -25,7 +29,11 @@ class LOGWRITER():
 
     def log_error(self, error_message):
         """
-        Documents specifically errors or crashes during long training protocols
+        Logs an error message with a timestamp to the log file, useful for recording exceptions or problems encountered
+        during training.
+
+        Args:
+            error_message (str): The error message to log.
         """
         with open(self.output_file_dir, 'a') as writer:
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
