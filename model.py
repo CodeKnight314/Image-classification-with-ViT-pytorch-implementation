@@ -23,16 +23,15 @@ class MSA(nn.Module):
 
     def scaled_dot_product(self, Queries, Keys, Values, Mask : Union[None, torch.Tensor] = None): 
         """
-        Scaled dot product for calculating attention scores with Queries, Keys, Values 
+        Computes the scaled dot-product attention over the inputs.
 
-        Args: 
-            Queries (torch.Tensor): 
-            Keys (torch.Tensor): 
-            Values (torch.Tensor): 
-            Mask (Union[None, torch.Tensor])
-        
-        Returns: 
-            torch.Tensor
+        Args:
+            Queries, Keys, Values (torch.Tensor): The query, key, and value tensors after being processed through
+                their respective linear transformations.
+            Mask (torch.Tensor, optional): Optional mask tensor to zero out certain positions in the attention scores.
+
+        Returns:
+            torch.Tensor: The output tensor after applying attention and weighted sum operations.
         """
         attn_score = torch.matmul(Queries, torch.transpose(Keys, -2, -1)) / math.sqrt(self.d_k) # Measures similarities between each set of queries and keys
         if Mask: 
@@ -42,6 +41,17 @@ class MSA(nn.Module):
         return output
 
     def forward(self, Queries, Keys, Values, Mask : Union[None, torch.Tensor] = None):
+        """
+        Forward pass of the MSA module. Applies self-attention individually to each head, concatenates the results,
+        and then projects the concatenated output back to the original dimensionality.
+
+        Args:
+            Queries, Keys, Values (torch.Tensor): Inputs to the self-attention mechanism.
+            Mask (torch.Tensor, optional): Optional mask to apply during the attention mechanism.
+
+        Returns:
+            torch.Tensor: The output of the MSA module after processing through the attention mechanism and linear output layer.
+        """
         batch_size = Queries.size(0)
 
         Q = self.W_Q(Queries).view(batch_size, -1, self.head, self.d_k).transpose(1, 2)
@@ -63,6 +73,16 @@ class FFN(nn.Module):
         self.relu = nn.ReLU()
     
     def forward(self, x): 
+        """
+        Forward pass through the feed-forward network. Applies a linear transformation followed by a ReLU activation
+        and another linear transformation.
+
+        Args:
+            x (torch.Tensor): Input tensor of shape [batch size, feature dimension].
+
+        Returns:
+            torch.Tensor: Output tensor of shape [batch size, output dimension].
+        """
         return self.l_2(self.relu(self.l_1(x)))
     
 class EncoderBlock(nn.Module): 
@@ -75,7 +95,17 @@ class EncoderBlock(nn.Module):
         self.l_norm_2 = nn.LayerNorm(outuput_dim)
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x): 
+    def forward(self, x):
+        """
+        Processes input through the encoder block, applying multi-head self-attention, feed-forward network, 
+        and residual connections with layer normalization.
+
+        Args:
+            x (torch.Tensor): The input tensor to the encoder block.
+
+        Returns:
+            torch.Tensor: The output tensor from the encoder block after processing.
+        """ 
         x = x + self.l_norm_1(self.msa(x, x, x))
         x = x + self.l_norm_2(self.ffn(x))
         return x
@@ -100,6 +130,15 @@ class ViT(nn.Module):
                                                nn.Dropout(0.3)])
     
     def forward(self, x): 
+        """
+        Defines the computation performed at every call of the Vision Transformer.
+
+        Args:
+            x (torch.Tensor): The input batch of images.
+
+        Returns:
+            torch.Tensor: The logits for each class.
+        """
         batch_size = x.size(0)
 
         patched_image = self.patch_embed(x)
