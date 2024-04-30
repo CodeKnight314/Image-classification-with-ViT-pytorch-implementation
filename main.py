@@ -74,15 +74,15 @@ def train_and_evaluation(model : ViT,
         scheduler.step()
 
 def main():
+    train_dl = load_dataset(mode = "train")
+    valid_dl = load_dataset(mode = "val")
+
+    loss_fn = CrossEntropyLoss()
+
     model = ViT((3, configs.img_height, configs.img_width), patch_size=8, layers = 12, num_classes=configs.num_class).to(configs.device)
     if configs.model_save_path: 
         model.load_state_dict(torch.load(configs.model_save_path))
     
-    train_dl = load_dataset(mode = "train")
-    valid_dl = load_dataset(mode = "valid")
-
-    loss_fn = CrossEntropyLoss()
-
     optimizer = get_optimizer(model=model, lr = 1e-4, betas=(0.9,0.999), weight_decay=1e-3)
 
     scheduler = get_scheduler(optimizer=optimizer, step_size = configs.epochs, gamma=0.5)
@@ -93,7 +93,3 @@ def main():
 
 if __name__ == "__main__": 
     main()
-
-            
-        
-
