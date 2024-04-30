@@ -18,7 +18,7 @@ class ImgClsDataset(Dataset):
         if transforms: 
             self.transforms = transforms 
         else: 
-            self.transforms = T.Compose([T.Resize(self.img_height, self.img_width), 
+            self.transforms = T.Compose([T.Resize((self.img_height, self.img_width), T.InterpolationMode.BICUBIC), 
                                          T.RandomHorizontalFlip(0.25), 
                                          T.RandomVerticalFlip(0.25), 
                                          T.GaussianBlur((5,5), sigma=(0.1, 2)),
@@ -36,7 +36,7 @@ class ImgClsDataset(Dataset):
                     self.images.append((image, i))
 
     def __getitem__(self, index):
-        img_id, img_path = self.images[index]
+        img_path, img_id = self.images[index]
         img = self.transforms(Image.open(img_path).convert("RGB"))
         return img.to(configs.device), img_id
 
@@ -44,7 +44,7 @@ class ImgClsDataset(Dataset):
         return len(self.images)
     
 def load_dataset(img_height = configs.img_height, img_width = configs.img_width, batch_size = configs.batch_size, shuffle = True, mode = "train"): 
-    assert mode in ["train", "valid", "test"], "[ERROR] Invalid dataset mode"
+    assert mode in ["train", "val", "test"], "[ERROR] Invalid dataset mode"
     ds = ImgClsDataset(configs.root_dir, img_height, img_width, mode = mode, transforms = configs.transforms)
     configs.num_class = len(ds.id_to_class_dict)
     return DataLoader(dataset=ds, batch_size=batch_size, shuffle=shuffle, drop_last=True)
