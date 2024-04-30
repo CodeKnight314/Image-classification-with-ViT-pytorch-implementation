@@ -19,11 +19,11 @@ class CrossEntropyLoss(nn.Module):
         Returns:
             float: The calculated loss value, averaged over the batch if reduction is 'mean', otherwise the sum.
         """
-        assert logits.shape == labels.shape and logits.size(1) != 1, "[ERROR] Logits and labels have incompatiable shapes or logits are shaped for binary classification."
         probs = torch.softmax(logits, dim=-1)
-        log_probs = torch.log(probs + 1e-9)
+        probs, _ = probs.max(dim = - 1)
+        log_probs = torch.log(probs + 1e-9).to(labels.device)
         loss = - (labels * log_probs)
-        return loss.sum(dim=-1).mean().item() if self.reduction == "mean" else loss.sum().item()
+        return loss.sum(dim=-1).mean() if self.reduction == "mean" else loss.sum()
 
 class BCELoss(nn.Module): 
     def __init__(self): 
@@ -40,11 +40,10 @@ class BCELoss(nn.Module):
         Returns:
             float: The calculated loss value, averaged over all elements in the batch.
         """
-        assert logits.shape == labels.shape and logits.size(1) == 1, "[ERROR] Logits and labels have incompatiable shapes or logits are shaped for multi-class classification."
         probs = torch.sigmoid(logits)
         probs_log = torch.log(probs + 1e-9)
         neg_probs_log = torch.log(1-probs + 1e-9)
-        return - (labels * probs_log + (1-labels) * neg_probs_log).sum(dim=-1).mean().item()
+        return - (labels * probs_log + (1-labels) * neg_probs_log).sum(dim=-1).mean()
 
 class HingeLoss(nn.Module): 
     def __init__(self): 
