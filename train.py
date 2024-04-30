@@ -28,7 +28,6 @@ def train_step(model, opt, data, loss_fn):
     predictions = model(image)
     loss = loss_fn(predictions, label)
     loss.backward()
-
     opt.step() 
     return loss.item()
 
