@@ -79,7 +79,7 @@ def main():
 
     scheduler = get_scheduler(optimizer=optimizer, step_size=configs.epochs//5, gamma=0.5)
 
-    logger = LOGWRITER(configs.output_dir, configs.epochs)
+    logger = LOGWRITER(configs.log_output_dir, configs.epochs)
 
     loss_fn = CrossEntropyLoss()
 
