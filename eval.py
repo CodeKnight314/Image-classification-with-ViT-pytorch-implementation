@@ -7,6 +7,7 @@ from dataset import *
 from model import * 
 from loss import *
 from utils.log_writer import *
+from utils.visualization import * 
 
 def confusion_matrix(predictions : torch.Tensor, labels : torch.Tensor, num_class : int):
     """
@@ -28,7 +29,7 @@ def confusion_matrix(predictions : torch.Tensor, labels : torch.Tensor, num_clas
 
     return conf_matrix
 
-def eval_metrics_bundle(conf_matrix : torch.Tensor, avg_mode = "macro"):
+def eval_metrics_bundle(conf_matrix : torch.Tensor, avg_mode = "macro", create_confusion_matrix = True):
     """
     Calculates precision, recall, and accuracy from a confusion matrix using either macro or micro averaging.
 
@@ -56,6 +57,9 @@ def eval_metrics_bundle(conf_matrix : torch.Tensor, avg_mode = "macro"):
         recall = tp.sum().float() / (tp.sum() + fn.sum() + 1e-9).float()
 
     accuracy = (tp.sum() + tn.sum()).float() / (tp.sum() + fn.sum() + fp.sum() + tn.sum()).float()
+
+    if(create_confusion_matrix):
+        plot_confusion_matrix(confusion_matrix=conf_matrix, num_classes=configs.num_class, save_pth=os.path.joiin(configs.matrix_output_dir, f"Epoch_{len(glob(configs.matrix_output_dir))+1}_confusion_matrix.png"))
 
     return round(precision.item(), 4), round(recall.item(), 4), round(accuracy.item(), 4)
 
@@ -118,7 +122,7 @@ def main():
     if configs.model_save_path: 
         model.load_state_dict(torch.load(configs.model_save_path, map_location="cuda" if torch.cuda.is_available() else "cpu"))
 
-    logger = LOGWRITER(configs.output_dir, 0)
+    logger = LOGWRITER(configs.log_output_dir, 0)
 
     loss_fn = CrossEntropyLoss()
 
