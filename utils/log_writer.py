@@ -22,7 +22,7 @@ class LOGWRITER():
         with open(self.output_file_dir, 'a') as writer: 
             log = f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [{epoch}/{self.total_epochs}] "
             for key, value in kwargs.items(): 
-                log += f"| {key}: {round(value, 3)} | "
+                log += f"| {key}: {round(value, 6)} | "
             
             writer.write(log + "\n")
             writer.flush()
