@@ -47,5 +47,6 @@ def load_dataset(img_height = configs.img_height, img_width = configs.img_width,
     assert mode in ["train", "val", "test"], "[ERROR] Invalid dataset mode"
     ds = ImgClsDataset(configs.root_dir, img_height, img_width, mode = mode, transforms = configs.transforms)
     configs.num_class = len(ds.id_to_class_dict)
-    print(f"[INFO] Total Class count: {configs.num_class}")
+    configs.id_to_category_dict = ds.id_to_class_dict
+    configs.category_to_id_dict = ds.class_to_id_dict
     return DataLoader(dataset=ds, batch_size=batch_size, shuffle=shuffle, drop_last=True)
