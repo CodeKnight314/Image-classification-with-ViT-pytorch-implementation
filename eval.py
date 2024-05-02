@@ -58,9 +58,6 @@ def eval_metrics_bundle(conf_matrix : torch.Tensor, avg_mode = "macro", create_c
 
     accuracy = (tp.sum() + tn.sum()).float() / (tp.sum() + fn.sum() + fp.sum() + tn.sum()).float()
 
-    if(create_confusion_matrix):
-        plot_confusion_matrix(confusion_matrix=conf_matrix, num_classes=configs.num_class, save_pth=os.path.joiin(configs.matrix_output_dir, f"Epoch_{len(glob(configs.matrix_output_dir))+1}_confusion_matrix.png"))
-
     return round(precision.item(), 4), round(recall.item(), 4), round(accuracy.item(), 4)
 
 
@@ -86,7 +83,7 @@ def eval_step(model, data, loss_fn):
                                                                        labels=labels, 
                                                                        num_class=configs.num_class))
     
-    return loss.item(), precision, recall, accuracy
+    return loss.item(), precision, recall, accuracy, predictions, labels
 
 def evaluation(model, logger, loss_fn, dataloader): 
     """
