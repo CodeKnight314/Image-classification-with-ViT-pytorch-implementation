@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import torch 
 import matplotlib.patches as patches
+import configs
 
 def add_gaussian_noise(image_path : str, mean : int, std : int, output_directory : Union[str, None], show : bool = False): 
     """
@@ -144,7 +145,7 @@ def batch_noise(root_dir : str, output_dir : Union[str, None], show : bool = Fal
     else: 
         raise ValueError(f"[Error] Invalid mode. {mode} is not available as a noise mode.")
     
-def plot_confusion_matrix(true_labels : np.array, predictions : np.array, num_classes : int, save_pth : Union[str, None]):
+def plot_confusion_matrix(confusion_matrix : torch.Tensor, num_classes : int, save_pth : Union[str, None]):
     """
     Computes and plots a confusion matrix.
     
@@ -155,16 +156,11 @@ def plot_confusion_matrix(true_labels : np.array, predictions : np.array, num_cl
         save_pth (Union[str, None]): save path for confusion matrix 
     """
     
-    # Compute the confusion matrix
-    cm = np.zeros((num_classes, num_classes), dtype=int)
-    for true, pred in zip(true_labels, predictions):
-        cm[true, pred] += 1
-    
-    # Plot the confusion matrix
+    cm = confusion_matrix.detach().cpu().numpy()
     plt.figure(figsize=(10, 7))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
-                xticklabels=[f'Class {i}' for i in range(num_classes)], 
-                yticklabels=[f'Class {i}' for i in range(num_classes)])
+    sns.heatmap(cm, annot = True, fmt='d', cmap='Blues', 
+                xticklabels=[f"{configs.id_to_category[i]}" for i in range(num_classes)], 
+                yticklabels=[f"{configs.id_to_category[i]}" for i in range(num_classes)])
     plt.xlabel('Predicted')
     plt.ylabel('True')
     plt.title('Confusion Matrix')
