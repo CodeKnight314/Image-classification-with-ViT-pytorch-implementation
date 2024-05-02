@@ -27,16 +27,6 @@ def train_and_evaluation(model : ViT,
         logger (LOGWRITER): An instance of LOGWRITER for logging training and validation metrics.
         loss_fn (CrossEntropyLoss): The loss function used for training the model.
         epochs (int): The total number of epochs to train the model.
-
-    Processing:
-        - For each epoch, iterates through the training data to compute the loss and update the model parameters.
-        - Validates the model on the validation data to compute metrics like loss, precision, recall, and accuracy.
-        - Logs the average metrics for each epoch and checks for improvement in validation loss to save the best model.
-        - Adjusts the learning rate based on the scheduler.
-        
-    Side Effects:
-        - Saves the best model's weights to a specified directory.
-        - Logs the training and validation metrics for each epoch.
     """
     
     best_loss = float('inf')
@@ -75,20 +65,23 @@ def train_and_evaluation(model : ViT,
         scheduler.step()
 
 def main():
+    configs.main()
+
     train_dl = load_dataset(mode = "train")
     valid_dl = load_dataset(mode = "test")
 
     loss_fn = CrossEntropyLoss()
 
-    model = ViT((3, configs.img_height, configs.img_width), patch_size=8, layers = 12, num_classes=configs.num_class).to(configs.device)
+    model = ViT((3, configs.img_height, configs.img_width), patch_size=2, layers = 12, num_classes=configs.num_class).to(configs.device)
     if configs.model_save_path: 
+        print("[INFO] Model weights provided. Loading model weights to ViT.")
         model.load_state_dict(torch.load(configs.model_save_path))
     
     optimizer = get_optimizer(model=model, lr = 1e-4, betas=(0.9,0.999), weight_decay=1e-5)
 
     scheduler = get_scheduler(optimizer=optimizer, step_size = configs.epochs, gamma=0.5)
 
-    logger = LOGWRITER(output_directory=configs.output_dir, total_epochs=configs.epochs)
+    logger = LOGWRITER(output_directory=configs.log_output_dir, total_epochs=configs.epochs)
 
     train_and_evaluation(model=model, optimizer=optimizer, scheduler=scheduler, train_dl=train_dl, valid_dl=valid_dl, logger=logger, loss_fn=loss_fn, epochs=configs.epochs)
 
