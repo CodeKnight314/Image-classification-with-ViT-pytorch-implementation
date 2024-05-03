@@ -53,7 +53,7 @@ def train_and_evaluation(model : ViT,
         avg_valid_value = torch.tensor(valid_batched_values).sum(dim=1) / len(valid_batched_values)
 
         conf_matrix = confusion_matrix(predictions=pred_stack, labels=label_stack, num_class=configs.num_class)
-        plot_confusion_matrix(confusion_matrix=conf_matrix, num_classes=configs.num_class, save_pth=os.path.join(configs.matrix_output_dir, f"Epoch_{len(glob(configs.matrix_output_dir))}_conf_matrix.png"))
+        plot_confusion_matrix(confusion_matrix=conf_matrix, num_classes=configs.num_class, save_pth=os.path.join(configs.matrix_output_dir, f"Epoch_{epoch+1}_conf_matrix.png"))
 
         if best_loss > avg_train_loss[0].item(): 
             if not os.path.exists(os.path.join(configs.output_dir, "saved_weights")):

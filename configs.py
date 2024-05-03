@@ -3,18 +3,18 @@ import os
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-root_dir = "/workspace/cifar10/cifar10"
+root_dir = "/workspace/food-dataset"
 
-img_height = 32
-img_width = 32
+img_height = 128
+img_width = 128
 
 transforms = None
 
 model_save_path = None
 
-batch_size = 128
+batch_size = 4
 
-epochs = 35
+epochs = 50
 
 output_dir = "/workspace"
 

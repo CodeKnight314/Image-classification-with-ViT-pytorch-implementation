@@ -111,7 +111,7 @@ class EncoderBlock(nn.Module):
         return x
 
 class ViT(nn.Module): 
-    def __init__(self, input_dim : Tuple[int] = (3,128,128), patch_size : int = 2, layers : int = 12, num_classes : int = 12): 
+    def __init__(self, input_dim : Tuple[int] = (3,128,128), patch_size : int = 8, layers : int = 12, num_classes : int = 12): 
         super().__init__()
 
         self.d_model = input_dim[0] * patch_size ** 2
