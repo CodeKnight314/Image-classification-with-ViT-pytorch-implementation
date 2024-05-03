@@ -124,7 +124,7 @@ class ViT(nn.Module):
 
         self.init_pos_encod()
 
-        self.encoder_stack = nn.Sequential(*[EncoderBlock(self.d_model, self.d_model * 2, self.d_model, 12, dropout=0.3) for _ in range(layers)])
+        self.encoder_stack = nn.Sequential(*[EncoderBlock(self.d_model, self.d_model, self.d_model, 12, dropout=0.3) for _ in range(layers)])
 
         self.classifier_head = nn.Sequential(*[nn.LayerNorm(self.d_model),
                                                nn.Linear(self.d_model, num_classes),
