@@ -175,6 +175,9 @@ def main():
         plt.xlabel("Batch Size")
         plt.ylabel("Runtime (seconds)")
         plt.savefig(f"Model_{2**i}.png")
+    
+    model = ViT((3, 256, 256)).to(device)
+    summary(model, (3, 256, 256))
 
 if __name__ == "__main__": 
     main()
