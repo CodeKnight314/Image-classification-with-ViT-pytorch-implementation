@@ -110,42 +110,35 @@ class EncoderBlock(nn.Module):
         x = x + self.l_norm_2(self.ffn(x))
         return x
 
-class ViT(nn.Module): 
-    def __init__(self, input_dim : Tuple[int] = (3,128,128), patch_size : int = 8, layers : int = 12, num_classes : int = 12): 
+class ViT(nn.Module):
+    def __init__(self, input_dim=(3, 320, 320), patch_size=8, layers=12, num_classes=12):
         super().__init__()
 
-        self.d_model = input_dim[0] * patch_size ** 2
-        self.n_patches = input_dim[1] * input_dim[2] // patch_size ** 2
+        self.d_model = min(input_dim[0] * patch_size ** 2, 512)
+        self.patch_size = patch_size
+        self.input_dim = input_dim
 
         self.patch_embed = PatchEmbeddingConv(input_channels=input_dim[0], patch_size=patch_size)
 
         self.class_token = nn.Parameter(data=torch.randn(1, 1, self.d_model), requires_grad=True)
 
-        self.pos_encod = nn.Parameter(data=torch.randn(1, self.n_patches + 1, self.d_model), requires_grad=True)
+        self.init_pos_encod()
 
-        self.encoder_stack = nn.Sequential(*[EncoderBlock(self.d_model, self.d_model * 4, self.d_model, 12, dropout=0.3) for _ in range(layers)])
+        self.encoder_stack = nn.Sequential(*[EncoderBlock(self.d_model, self.d_model * 2, self.d_model, 12, dropout=0.3) for _ in range(layers)])
 
         self.classifier_head = nn.Sequential(*[nn.LayerNorm(self.d_model),
                                                nn.Linear(self.d_model, num_classes),
                                                nn.Dropout(0.3)])
-    
-    def forward(self, x): 
-        """
-        Defines the computation performed at every call of the Vision Transformer.
 
-        Args:
-            x (torch.Tensor): The input batch of images.
+    def init_pos_encod(self):
+        n_patches = (self.input_dim[1] // self.patch_size) * (self.input_dim[2] // self.patch_size)
+        self.pos_encod = nn.Parameter(data=torch.randn(1, n_patches + 1, self.d_model), requires_grad=True)
 
-        Returns:
-            torch.Tensor: The logits for each class.
-        """
+    def forward(self, x):
         batch_size = x.size(0)
-
         patched_image = self.patch_embed(x)
-
         class_tokens = self.class_token.expand(batch_size, -1, -1)
-
-        concat_patches = torch.cat([patched_image, class_tokens], dim = 1)
+        concat_patches = torch.cat([patched_image, class_tokens], dim=1)
 
         x = self.encoder_stack(self.pos_encod + concat_patches)
 
