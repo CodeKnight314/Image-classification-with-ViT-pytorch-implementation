@@ -9,6 +9,8 @@ import seaborn as sns
 import torch 
 import matplotlib.patches as patches
 import configs
+from collections import Counter
+
 
 def add_gaussian_noise(image_path : str, mean : int, std : int, output_directory : Union[str, None], show : bool = False): 
     """
@@ -168,3 +170,23 @@ def plot_confusion_matrix(confusion_matrix : torch.Tensor, num_classes : int, sa
 
     if save_pth: 
         plt.savefig(save_pth)
+
+def count_labels(directory):
+    """
+    Counts the number of images in each label directory within the given parent directory.
+    
+    Args:
+    directory (str): The path to the directory containing labeled subdirectories of images.
+    
+    Returns:
+    dict: A dictionary with keys as labels and values as counts of images.
+    """
+    label_counts = Counter()
+    # Iterate through each subdirectory in the given directory
+    for label in os.listdir(directory):
+        label_dir = os.path.join(directory, label)
+        if os.path.isdir(label_dir):
+            # Count files in the subdirectory, assuming all are images
+            label_counts[label] = len([f for f in os.listdir(label_dir) if os.path.isfile(os.path.join(label_dir, f))])
+    
+    return dict(label_counts)
