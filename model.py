@@ -149,7 +149,7 @@ class ResBlock(nn.Module):
     def __init__(self, input_channels: int, output_channels: int, stride: int): 
         super().__init__()
 
-        if input_channels != output_channels or stride != 1: 
+        if input_channels != output_channels: 
             self.projection = nn.Sequential(
                 nn.Conv2d(input_channels, output_channels, kernel_size=1, stride=stride, padding=0),
                 nn.BatchNorm2d(output_channels)
@@ -191,7 +191,7 @@ class ResStack(nn.Module):
 
 class ResNet(nn.Module): 
 
-    def __init__(self, input_dim : Tuple[int] = (3,224,224), channels = [64, 128, 256, 512], num_layers = [3, 4, 6, 3], num_classes : int = 21):
+    def __init__(self, channels = [64, 128, 256, 512], num_layers = [3, 4, 6, 3], num_classes : int = configs.num_class):
         super().__init__()
 
         assert len(channels) == len(num_layers), "[ERROR] Channels and Layers lists do not match in length."
@@ -219,6 +219,12 @@ class ResNet(nn.Module):
         logits = self.classifier_head(block_conv)
 
         return logits
+    
+def get_ViT(input_dim : Tuple[int] = [3, configs.img_height, configs.img_width], patch_size=configs.patches, layers : int = 12): 
+    return ViT(input_dim=input_dim, patch_size=patch_size, layers = layers, num_classes=configs.num_class).to(device)
+
+def get_ResNet(channels = [64, 128, 256, 512], num_layers = [3, 4, 6, 3], num_classes : int = configs.num_class): 
+    return ResNet(channels=channels, num_layers=num_layers, num_classes=num_classes).to(device)
     
 def main():  
 
