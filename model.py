@@ -169,19 +169,20 @@ class ResBlock(nn.Module):
         identity = self.projection(x)
         
         out = self.relu(self.ba_n1(self.conv1(x)))
-        out = self.relu(self.ba_n2(self.conv2(out)))
+        out = self.ba_n2(self.conv2(out))
+        out = self.relu(out)  
         
-        out += identity
-        out = self.relu(out)
-
+        out = out + identity
+        out = self.relu(out) 
+    
         return out
 
 class ResStack(nn.Module): 
-    def __init__(self, input_channels : int, output_channels : int, num_layers : int): 
+    def __init__(self, input_channels : int, output_channels : int, num_layers : int, stride : int = 1): 
         super().__init__() 
 
         layers = []
-        layers.append(ResBlock(input_channels=input_channels, output_channels=output_channels, stride=2))
+        layers.append(ResBlock(input_channels=input_channels, output_channels=output_channels, stride=stride))
         for _ in range(num_layers - 1):
             layers.append(ResBlock(input_channels=output_channels, output_channels=output_channels, stride=1))
         self.block = nn.Sequential(*layers)
@@ -202,9 +203,9 @@ class ResNet(nn.Module):
                                           nn.MaxPool2d(kernel_size=3, stride=2)])
         
         blocks = []
-        blocks.append(ResStack(64, channels[0],num_layers[0]))
+        blocks.append(ResStack(64, channels[0],num_layers[0], 1))
         for i in range(1, len(channels)):
-            blocks.append(ResStack(channels[i-1], channels[i],num_layers[i]))
+            blocks.append(ResStack(channels[i-1], channels[i], num_layers[i], 2))
 
         self.blocks = nn.Sequential(*blocks)
 

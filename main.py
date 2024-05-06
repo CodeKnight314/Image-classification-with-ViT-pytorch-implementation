@@ -6,6 +6,8 @@ from loss import *
 from utils.log_writer import * 
 import configs 
 
+torch.autograd.set_detect_anomaly(True)
+
 def train_and_evaluation(model : ViT,
                          optimizer : torch.optim, 
                          scheduler : torch.optim.lr_scheduler, 
@@ -40,8 +42,8 @@ def train_and_evaluation(model : ViT,
             train_batched_values.append([loss])
         
         valid_batched_values = [] 
-        pred_stack = torch.tensor([])
-        label_stack = torch.tensor([])
+        pred_stack = torch.tensor([]).to(configs.device)
+        label_stack = torch.tensor([]).to(configs.device)
 
         for data in tqdm(valid_dl, desc = f"[Validating {epoch+1}/{epochs}]"):
             loss, precision, recall, accuracy, predictions, labels = eval_step(model=model, data=data, loss_fn=loss_fn)
@@ -59,7 +61,7 @@ def train_and_evaluation(model : ViT,
             if not os.path.exists(os.path.join(configs.output_dir, "saved_weights")):
                 os.makedirs(os.path.join(configs.output_dir, "saved_weights"))
                 
-            torch.save(model.state_dict, os.path.join(os.path.join(configs.output_dir, "saved_weights"), f"ViT_{configs.img_height}x{configs.img_width}_{epoch+1}.pth"))
+            torch.save(model.state_dict, os.path.join(os.path.join(configs.output_dir, "saved_weights"), f"ResNet_{configs.img_height}x{configs.img_width}_{epoch+1}.pth"))
             best_loss = avg_train_loss[0].item()
 
         logger.write(epoch=epoch+1, 
@@ -79,7 +81,7 @@ def main():
 
     loss_fn = CrossEntropyLoss()
 
-    model = ViT((3, configs.img_height, configs.img_width), patch_size=2, layers = 12, num_classes=configs.num_class).to(configs.device)
+    model = get_ResNet(num_classes = configs.num_class)
     if configs.model_save_path: 
         print("[INFO] Model weights provided. Loading model weights to ViT.")
         model.load_state_dict(torch.load(configs.model_save_path))
