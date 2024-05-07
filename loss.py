@@ -78,7 +78,7 @@ def get_optimizer(model, lr : float, betas : Tuple[float], weight_decay : float)
     Returns:
         torch.optim : optimizer with the given parameters
     """
-    return opt.Adam(model.parameters(), lr = lr, betas=betas, weight_decay=weight_decay)
+    return opt.SGD(model.parameters(), lr = 1e-3, momentum = 0.9, weight_decay=1e-4)
 
 def get_scheduler(optimizer : torch.optim, step_size : int, gamma : float): 
     """
@@ -90,5 +90,3 @@ def get_scheduler(optimizer : torch.optim, step_size : int, gamma : float):
         gamme (float): the rate at which the optimizer's learning rate decreases. New learning rate = lr * gamma at each step size interval
     """
     return opt.lr_scheduler.StepLR(optimizer=optimizer, step_size=step_size, gamma=gamma)
-
-

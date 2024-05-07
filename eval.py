@@ -76,15 +76,15 @@ def eval_step(model, data, loss_fn):
     image, label = data 
     label = label.to(configs.device)    
     predictions = model(image)
-    loss = loss_fn(predictions, labels)
+    loss = loss_fn(predictions, label)
 
     _, predictions = torch.softmax(predictions, dim = -1).max(dim=-1)
 
     precision, recall, accuracy = eval_metrics_bundle(confusion_matrix(predictions=predictions, 
-                                                                       labels=labels, 
+                                                                       labels=label, 
                                                                        num_class=configs.num_class))
     
-    return loss.item(), precision, recall, accuracy, predictions, labels
+    return loss.item(), precision, recall, accuracy, predictions, label
 
 def evaluation(model, logger, loss_fn, dataloader): 
     """
