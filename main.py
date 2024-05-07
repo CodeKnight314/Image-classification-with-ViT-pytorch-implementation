@@ -79,7 +79,7 @@ def main():
     train_dl = load_dataset(mode = "train")
     valid_dl = load_dataset(mode = "test")
 
-    loss_fn = CrossEntropyLoss()
+    loss_fn = nn.CrossEntropyLoss() #Custom implementation is kinda screwed rn. 
 
     model = get_ResNet(num_classes = configs.num_class)
     if configs.model_save_path: 
