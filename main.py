@@ -48,7 +48,7 @@ def train_and_evaluation(model : ViT,
         for data in tqdm(valid_dl, desc = f"[Validating {epoch+1}/{epochs}]"):
             loss, precision, recall, accuracy, predictions, labels = eval_step(model=model, data=data, loss_fn=loss_fn)
             pred_stack = torch.cat([pred_stack, predictions])
-            label_stack = torch.cat([label_stack, labels])
+            label_stack = torch.cat([label_stack, labels.to(configs.device)])
             valid_batched_values.append((loss, precision, recall, accuracy))
         
         avg_train_loss = torch.tensor(train_batched_values).sum(dim=1) / len(train_batched_values)

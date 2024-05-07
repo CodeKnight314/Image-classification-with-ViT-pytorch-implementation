@@ -161,8 +161,8 @@ def plot_confusion_matrix(confusion_matrix : torch.Tensor, num_classes : int, sa
     cm = confusion_matrix.detach().cpu().numpy()
     plt.figure(figsize=(10, 7))
     sns.heatmap(cm, annot = True, fmt='d', cmap='Blues', 
-                xticklabels=[f"{configs.id_to_category[i]}" for i in range(num_classes)], 
-                yticklabels=[f"{configs.id_to_category[i]}" for i in range(num_classes)])
+                xticklabels=[f"{configs.id_to_category_dict[i]}" for i in range(num_classes)], 
+                yticklabels=[f"{configs.id_to_category_dict[i]}" for i in range(num_classes)])
     plt.xlabel('Predicted')
     plt.ylabel('True')
     plt.title('Confusion Matrix')
