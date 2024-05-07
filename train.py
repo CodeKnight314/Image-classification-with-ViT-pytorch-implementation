@@ -25,6 +25,7 @@ def train_step(model, opt, data, loss_fn):
     opt.zero_grad()
 
     image, label = data 
+    label = label.to(configs.device)
     predictions = model(image)
     loss = loss_fn(predictions, label)
     loss.backward()

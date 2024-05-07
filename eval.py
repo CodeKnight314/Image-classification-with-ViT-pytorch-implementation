@@ -73,7 +73,8 @@ def eval_step(model, data, loss_fn):
     Returns:
         Tuple[float, float, float, float]: A tuple containing the loss, precision, recall, and accuracy, each rounded to four decimal places.
     """
-    image, labels = data
+    image, label = data 
+    label = label.to(configs.device)    
     predictions = model(image)
     loss = loss_fn(predictions, labels)
 
