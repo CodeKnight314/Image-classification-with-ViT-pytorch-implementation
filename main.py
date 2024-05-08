@@ -5,6 +5,7 @@ from dataset import *
 from loss import * 
 from utils.log_writer import * 
 import configs 
+from torch.nn import functional as F
 
 torch.autograd.set_detect_anomaly(True)
 
@@ -56,6 +57,16 @@ def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, 
                 total_recall += (preds == labels).sum().item() / preds.size(0)
                 total_accuracy += (preds == labels).sum().item() / preds.size(0)
 
+            images, labels = next(iter(valid_dl))
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            
+            probabilities = F.softmax(outputs, dim=-1)
+            predictions = torch.argmax(probabilities, dim=-1)
+            
+            cm = confusion_matrix(predictions=predictions,labels=labels,num_class=configs.num_class)
+            plot_confusion_matrix(cm, configs.num_class, os.path.join(configs.matrix_output_dir, f"CONF_Matrix_{epoch+1}.png"))
+
         avg_train_loss = total_train_loss / len(train_dl)
         avg_val_loss = total_val_loss / len(valid_dl)
         avg_precision = total_precision / len(valid_dl)
@@ -63,11 +74,8 @@ def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, 
         avg_accuracy = total_accuracy / len(valid_dl)
 
         if avg_val_loss < best_loss:
-            save_path = os.path.join(configs.root_dir, 'saved_weights')
-            if not os.path.exists(save_path):
-                os.mkdir(save_path)
             best_loss = avg_val_loss
-            save_path = os.path.join(save_path, f'Best_model_CIFAR10_{epoch+1}.pth')
+            save_path = os.path.join(configs.save_pth, f'Best_model_CIFAR10_{epoch+1}.pth')
             torch.save(model.state_dict(), save_path)
 
         logger.write(epoch=epoch+1, tr_loss=avg_train_loss, val_loss=avg_val_loss,
