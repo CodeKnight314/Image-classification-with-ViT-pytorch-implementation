@@ -29,7 +29,7 @@ def confusion_matrix(predictions : torch.Tensor, labels : torch.Tensor, num_clas
 
     return conf_matrix
 
-def eval_metrics_bundle(conf_matrix : torch.Tensor, avg_mode = "macro", create_confusion_matrix = True):
+def eval_metrics_bundle(conf_matrix: torch.Tensor, avg_mode: str = "macro") -> tuple:
     """
     Calculates precision, recall, and accuracy from a confusion matrix using either macro or micro averaging.
 
@@ -41,22 +41,21 @@ def eval_metrics_bundle(conf_matrix : torch.Tensor, avg_mode = "macro", create_c
         Tuple[float, float, float]: A tuple containing the precision, recall, and accuracy, each rounded to four decimal places.
     """
     tp = torch.diag(conf_matrix)
-
+    
     fn = conf_matrix.sum(dim=-2) - tp
-
+    
     fp = conf_matrix.sum(dim=-1) - tp
-
-    tn = conf_matrix.sum() - (tp + fn + fp)
-
+    
     if avg_mode == "macro":
         precision = (tp.float() / (tp + fp + 1e-9).float()).mean()
         recall = (tp.float() / (tp + fn + 1e-9).float()).mean()
-
     elif avg_mode == "micro":
-        precision = tp.sum().float() / (tp.sum() + fp.sum() +1e-9).float()
+        precision = tp.sum().float() / (tp.sum() + fp.sum() + 1e-9).float()
         recall = tp.sum().float() / (tp.sum() + fn.sum() + 1e-9).float()
+    else:
+        raise ValueError("Unsupported averaging mode. Choose 'macro' or 'micro'.")
 
-    accuracy = (tp.sum() + tn.sum()).float() / (tp.sum() + fn.sum() + fp.sum() + tn.sum()).float()
+    accuracy = tp.sum().float() / conf_matrix.sum().float()
 
     return round(precision.item(), 4), round(recall.item(), 4), round(accuracy.item(), 4)
 
@@ -73,18 +72,23 @@ def eval_step(model, data, loss_fn):
     Returns:
         Tuple[float, float, float, float]: A tuple containing the loss, precision, recall, and accuracy, each rounded to four decimal places.
     """
-    image, label = data 
-    label = label.to(configs.device)    
-    predictions = model(image)
-    loss = loss_fn(predictions, label)
-
-    _, predictions = torch.softmax(predictions, dim = -1).max(dim=-1)
-
-    precision, recall, accuracy = eval_metrics_bundle(confusion_matrix(predictions=predictions, 
-                                                                       labels=label, 
-                                                                       num_class=configs.num_class))
+    model.eval()  # Set the model to evaluation mode
+    images, labels = data
+    images, labels = images.to(device), labels.to(device)  
     
-    return loss.item(), precision, recall, accuracy, predictions, label
+    with torch.no_grad():
+        outputs = model(images)
+        loss = loss_fn(outputs, labels)
+
+    probabilities = F.softmax(outputs, dim=-1)
+    predictions = torch.argmax(probabilities, dim=-1)
+
+    cm = confusion_matrix(predictions=predictions,labels=labels,num_class=configs.num_class)
+
+    precision, recall, accuracy = eval_metrics_bundle(cm)
+
+    return round(loss.item(), 4), precision, recall, accuracy, predictions, labels
+
 
 def evaluation(model, logger, loss_fn, dataloader): 
     """
