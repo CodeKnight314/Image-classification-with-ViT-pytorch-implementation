@@ -8,14 +8,7 @@ import configs
 
 torch.autograd.set_detect_anomaly(True)
 
-def train_and_evaluation(model : ViT,
-                         optimizer : torch.optim, 
-                         scheduler : torch.optim.lr_scheduler, 
-                         train_dl : DataLoader,
-                         valid_dl : DataLoader, 
-                         logger : LOGWRITER, 
-                         loss_fn : CrossEntropyLoss, 
-                         epochs : int): 
+def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, loss_fn, epochs, device='cuda', num_classes=10):
     """
     Conducts training and validation of a Vision Transformer model over a specified number of epochs, logs the 
     performance metrics, and saves the best model based on validation loss.
@@ -29,48 +22,54 @@ def train_and_evaluation(model : ViT,
         logger (LOGWRITER): An instance of LOGWRITER for logging training and validation metrics.
         loss_fn (CrossEntropyLoss): The loss function used for training the model.
         epochs (int): The total number of epochs to train the model.
+        device (str): The computation device ('cuda' or 'cpu').
+        num_classes (int): The number of classes in the output layer of the model.
     """
-    
     best_loss = float('inf')
-    
-    for epoch in range(epochs): 
+    model.to(device)
 
-        train_batched_values = [] 
-        for data in tqdm(train_dl, desc=f"[Training: {epoch+1}/{epochs}]"): 
-            loss = train_step(model=model, opt=optimizer, data=data, loss_fn=loss_fn)
+    for epoch in range(epochs):
+        model.train()
+        total_train_loss = 0
+        for images, labels in tqdm(train_dl, desc=f"Training Epoch {epoch+1}/{epochs}"):
+            images, labels = images.to(device), labels.to(device)
+            optimizer.zero_grad()
+            outputs = model(images)
+            loss = loss_fn(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            total_train_loss += loss.item()
 
-            train_batched_values.append([loss])
-        
-        valid_batched_values = [] 
-        pred_stack = torch.tensor([]).to(configs.device)
-        label_stack = torch.tensor([]).to(configs.device)
+        model.eval()
+        total_val_loss = 0
+        total_precision = 0
+        total_recall = 0
+        total_accuracy = 0
+        with torch.no_grad():
+            for images, labels in tqdm(valid_dl, desc=f"Validating Epoch {epoch+1}/{epochs}"):
+                images, labels = images.to(device), labels.to(device)
+                outputs = model(images)
+                loss = loss_fn(outputs, labels)
+                total_val_loss += loss.item()
+                _, preds = torch.max(outputs, 1)
+                total_precision += (preds == labels).sum().item() / preds.size(0)
+                total_recall += (preds == labels).sum().item() / preds.size(0)
+                total_accuracy += (preds == labels).sum().item() / preds.size(0)
 
-        for data in tqdm(valid_dl, desc = f"[Validating {epoch+1}/{epochs}]"):
-            loss, precision, recall, accuracy, predictions, labels = eval_step(model=model, data=data, loss_fn=loss_fn)
-            pred_stack = torch.cat([pred_stack, predictions])
-            label_stack = torch.cat([label_stack, labels.to(configs.device)])
-            valid_batched_values.append((loss, precision, recall, accuracy))
-        
-        avg_train_loss = torch.tensor(train_batched_values).sum(dim=1) / len(train_batched_values)
-        avg_valid_value = torch.tensor(valid_batched_values).sum(dim=1) / len(valid_batched_values)
+        avg_train_loss = total_train_loss / len(train_dl)
+        avg_val_loss = total_val_loss / len(valid_dl)
+        avg_precision = total_precision / len(valid_dl)
+        avg_recall = total_recall / len(valid_dl)
+        avg_accuracy = total_accuracy / len(valid_dl)
 
-        conf_matrix = confusion_matrix(predictions=pred_stack, labels=label_stack, num_class=configs.num_class)
-        plot_confusion_matrix(confusion_matrix=conf_matrix, num_classes=configs.num_class, save_pth=os.path.join(configs.matrix_output_dir, f"Epoch_{epoch+1}_conf_matrix.png"))
+        if avg_val_loss < best_loss:
+            best_loss = avg_val_loss
+            save_path = os.path.join('saved_weights', f'ViT_best.pth')
+            torch.save(model.state_dict(), save_path)
 
-        if best_loss > avg_train_loss[0].item(): 
-            if not os.path.exists(os.path.join(configs.output_dir, "saved_weights")):
-                os.makedirs(os.path.join(configs.output_dir, "saved_weights"))
-                
-            torch.save(model.state_dict, os.path.join(os.path.join(configs.output_dir, "saved_weights"), f"ResNet_{configs.img_height}x{configs.img_width}_{epoch+1}.pth"))
-            best_loss = avg_train_loss[0].item()
+        logger.write(epoch=epoch+1, tr_loss=avg_train_loss, val_loss=avg_val_loss,
+                     precision=avg_precision, recall=avg_recall, accuracy=avg_accuracy)
 
-        logger.write(epoch=epoch+1, 
-                     tr_loss = avg_train_loss[0].item(), 
-                     avg_valid_loss = avg_valid_value[0].item(), 
-                     precision = avg_valid_value[1].item(), 
-                     recall = avg_valid_value[2].item(), 
-                     accuracy = avg_valid_value[3].item())
-        
         scheduler.step()
 
 def main():
@@ -92,7 +91,7 @@ def main():
 
     logger = LOGWRITER(output_directory=configs.log_output_dir, total_epochs=configs.epochs)
 
-    train_and_evaluation(model=model, optimizer=optimizer, scheduler=scheduler, train_dl=train_dl, valid_dl=valid_dl, logger=logger, loss_fn=loss_fn, epochs=configs.epochs)
+    train_and_evaluate(model=model, optimizer=optimizer, scheduler=scheduler, train_dl=train_dl, valid_dl=valid_dl, logger=logger, loss_fn=loss_fn, epochs=configs.epochs)
 
 if __name__ == "__main__": 
     main()
