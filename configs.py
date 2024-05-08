@@ -14,7 +14,7 @@ model_save_path = None
 
 batch_size = 128
 
-epochs = 50
+epochs = 200
 
 patches = 2
 
