@@ -8,6 +8,7 @@ from model import *
 from loss import *
 from utils.log_writer import *
 from utils.visualization import * 
+from torch.nn import functional as F
 
 def confusion_matrix(predictions : torch.Tensor, labels : torch.Tensor, num_class : int):
     """
