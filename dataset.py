@@ -21,7 +21,6 @@ class ImgClsDataset(Dataset):
             self.transforms = T.Compose([T.Resize((self.img_height, self.img_width), T.InterpolationMode.BICUBIC), 
                                          T.RandomHorizontalFlip(0.25), 
                                          T.RandomVerticalFlip(0.25), 
-                                         T.GaussianBlur((5,5), sigma=(0.1, 2)),
                                          T.ToTensor()])
         self.id_to_class_dict = {} 
         self.class_to_id_dict = {}
