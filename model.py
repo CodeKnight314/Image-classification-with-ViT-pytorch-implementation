@@ -221,10 +221,10 @@ class ResNet(nn.Module):
 
         return logits
     
-def get_ViT(input_dim : Tuple[int] = [3, configs.img_height, configs.img_width], patch_size=configs.patches, layers : int = 12): 
-    return ViT(input_dim=input_dim, patch_size=patch_size, layers = layers, num_classes=configs.num_class).to(device)
+def get_ViT(input_dim: Tuple[int] = (3, configs.img_height, configs.img_width), patch_size=configs.patches, layers: int = 12, device: str = configs.device):
+    return ViT(input_dim=input_dim, patch_size=patch_size, layers=layers, num_classes=configs.num_class).to(device)
 
-def get_ResNet(channels = [64, 128, 256, 512], num_layers = [3, 4, 6, 3], num_classes : int = configs.num_class): 
+def get_ResNet(channels=[64, 128, 256, 512], num_layers=[3, 4, 6, 3], num_classes: int = configs.num_class, device: str = configs.device):
     return ResNet(channels=channels, num_layers=num_layers, num_classes=num_classes).to(device)
     
 def main():  
