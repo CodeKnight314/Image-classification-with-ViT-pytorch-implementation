@@ -26,6 +26,8 @@ matrix_output_dir = os.path.join(output_dir, "conf_matrices")
 
 save_pth = os.path.join(output_dir, "saved_weights")
 
+heatmaps = os.path.join(output_dir, "heatmaps")
+
 num_class = None
 
 id_to_category_dict = None
@@ -44,6 +46,10 @@ def main():
     if not os.path.exists(save_pth): 
         os.makedirs(save_pth)
         print("[INFO] Model Save path not found. Creating folder directory.")
+    
+    if not os.path.exists(heatmaps):
+        os.makedirs(heatmaps)
+        print("[INFO] Heat map directory not found. Creating folder directory.")
 
 if __name__ == "__main__": 
     main()
