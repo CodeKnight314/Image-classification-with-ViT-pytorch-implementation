@@ -3,6 +3,7 @@ from eval import *
 from model import * 
 from dataset import * 
 from loss import * 
+from utils.visualization import plot_confusion_matrix
 from utils.log_writer import * 
 import configs 
 from torch.nn import functional as F
@@ -46,6 +47,7 @@ def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, 
         total_precision = 0
         total_recall = 0
         total_accuracy = 0
+        
         with torch.no_grad():
             for images, labels in tqdm(valid_dl, desc=f"Validating Epoch {epoch+1}/{epochs}"):
                 images, labels = images.to(device), labels.to(device)
