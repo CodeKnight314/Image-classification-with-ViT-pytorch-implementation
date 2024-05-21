@@ -84,7 +84,13 @@ class ResNet(nn.Module):
 
         return logits
     
-def get_ResNet(channels=[64, 128, 256, 512], num_layers=[3, 4, 6, 3], num_classes: int = configs.num_class, device: str = configs.device):
+def get_ResNet18(channels=[64, 128, 256, 512], num_layers=[2, 2, 2, 2], num_classes: int = configs.num_class, device : str = configs.device): 
+    return ResNet(channels=channels, num_layers=num_layers, num_classes=num_classes).to(device)
+
+def get_ResNet34(channels=[64, 128, 256, 512], num_layers=[3, 4, 6, 3], num_classes: int = configs.num_class, device : str = configs.device):
+    return ResNet(channels=channels, num_layers=num_layers, num_classes=num_classes).to(device)
+
+def get_ResNet50(channels=[64, 128, 256, 512], num_layers=[3, 4, 6, 3], num_classes: int = configs.num_class, device : str = configs.device): 
     return ResNet(channels=channels, num_layers=num_layers, num_classes=num_classes).to(device)
 
 def objective_resnet(trial):

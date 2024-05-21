@@ -1,7 +1,7 @@
 from train import * 
 from eval import * 
-from model.ViT import get_ViT
-from model.ResNet import get_ResNet
+from model.ViT import *
+from model.ResNet import *
 from dataset import * 
 from loss import * 
 from utils.visualization import plot_confusion_matrix
@@ -94,7 +94,7 @@ def main():
 
     loss_fn = nn.CrossEntropyLoss() #Custom implementation is kinda screwed rn. 
 
-    model = get_ResNet(num_classes = configs.num_class)
+    model = get_ResNet18(num_classes = configs.num_class)
     if configs.model_save_path: 
         print("[INFO] Model weights provided. Loading model weights to ViT.")
         model.load_state_dict(torch.load(configs.model_save_path))
