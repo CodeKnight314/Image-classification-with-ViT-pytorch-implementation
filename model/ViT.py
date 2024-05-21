@@ -159,8 +159,8 @@ def objective_vit(trial):
     optimizer = get_optimizer(model, lr = trial.suggest_loguniform('lr', 1e-5, 1e-1), betas = 0.9, weight_decay = trial.suggest_loguniform('weight-decay', 1e-6, 1e-1))
     criterion = nn.CrossEntropyLoss()
 
-    train_loader = load_dataset()
-    test_loader = load_dataset()
+    train_loader = load_dataset("test")
+    test_loader = load_dataset("valid")
 
     for epoch in tqdm(range(10), desc=f'Trial {trial.number+1}', unit='epoch'):
         batched_values = []

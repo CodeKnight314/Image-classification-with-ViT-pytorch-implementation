@@ -97,8 +97,8 @@ def objective_resnet(trial):
     optimizer = get_optimizer(model, lr=lr, betas=0.9, weight_decay=weight_decay)
     criterion = nn.CrossEntropyLoss()
 
-    train_loader = load_dataset()
-    test_loader = load_dataset()
+    train_loader = load_dataset("test")
+    test_loader = load_dataset("valid")
 
     for epoch in tqdm(range(10), desc=f'Trial {trial.number+1}', unit='epoch'):
         batched_values = []
