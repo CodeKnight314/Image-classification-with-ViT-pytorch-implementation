@@ -48,36 +48,17 @@ def eval_metrics_bundle(conf_matrix: torch.Tensor, avg_mode: str = "macro") -> t
     fp = conf_matrix.sum(dim=-1) - tp
 
     if avg_mode == "macro":
-        precision = (tp.float() / (tp + fp + 1e-9).float()).mean()
-        recall = (tp.float() / (tp + fn + 1e-9).float()).mean()
+        precision = (tp / (tp + fp + 1e-9)).mean()
+        recall = (tp / (tp + fn + 1e-9)).mean()
     elif avg_mode == "micro":
-        precision = tp.sum().float() / (tp.sum() + fp.sum() + 1e-9).float()
-        recall = tp.sum().float() / (tp.sum() + fn.sum() + 1e-9).float()
+        precision = tp.sum() / (tp.sum() + fp.sum() + 1e-9)
+        recall = tp.sum() / (tp.sum() + fn.sum() + 1e-9)
     else:
         raise ValueError("Unsupported averaging mode. Choose 'macro' or 'micro'.")
 
-    accuracy = tp.sum().float() / conf_matrix.sum().float()
+    accuracy = tp.sum() / conf_matrix.sum()
 
     return round(precision.item(), 4), round(recall.item(), 4), round(accuracy.item(), 4)
-
-def save_heatmap(image: torch.Tensor, probabilities: torch.Tensor, filename: str):
-    """
-    Generates and saves a heat map overlayed on the original image.
-
-    Args:
-        image (torch.Tensor): The input image tensor.
-        probabilities (torch.Tensor): The tensor containing class probabilities for each pixel.
-        filename (str): The path to save the heat map image.
-    """
-    image = image.cpu().numpy().transpose(1, 2, 0)
-    heatmap = probabilities.cpu().numpy()
-
-    plt.figure(figsize=(10, 10))
-    plt.imshow(image, alpha=0.5)
-    plt.imshow(heatmap, cmap='jet', alpha=0.5)
-    plt.colorbar()
-    plt.savefig(filename)
-    plt.close()
 
 def eval_step(model, data, loss_fn, device):
     """
@@ -106,11 +87,6 @@ def eval_step(model, data, loss_fn, device):
     cm = confusion_matrix(predictions=predictions, labels=labels, num_class=configs.num_class)
 
     precision, recall, accuracy = eval_metrics_bundle(cm)
-
-    # Generate and save heat maps
-    for i, image in enumerate(images):
-        heatmap_path = os.path.join(configs.heatmaps, f"heatmap_{i}.png")
-        save_heatmap(image, probabilities[i], heatmap_path)
 
     return round(loss.item(), 4), precision, recall, accuracy, predictions, labels
 
