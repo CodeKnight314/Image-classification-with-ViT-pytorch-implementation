@@ -1,29 +1,27 @@
 import torch 
 import torch.nn as nn 
 import torch.optim as opt 
+from torch.nn import functional as F
 from typing import Tuple
 
 class CrossEntropyLoss(nn.Module):
-    def __init__(self, reduction = "mean"):
+    def __init__(self):
         super().__init__() 
-        self.reduction = reduction
     
-    def forward(self, logits : torch.Tensor, labels : torch.Tensor):
+    def forward(self, logits: torch.Tensor, labels: torch.Tensor):
         """
         Calculates the cross-entropy loss between logits and true labels.
 
         Args:
             logits (torch.Tensor): The logits output from a model (unnormalized scores).
-            labels (torch.Tensor): The true labels, expected to be one-hot encoded.
+            labels (torch.Tensor): The true labels, expected to be class indices.
 
         Returns:
-            float: The calculated loss value, averaged over the batch if reduction is 'mean', otherwise the sum.
+            float: The calculated loss value, averaged over the batch.
         """
-        probs = torch.softmax(logits, dim=-1)
-        probs, _ = probs.max(dim = - 1)
-        log_probs = torch.log(probs + 1e-9).to(labels.device)
-        loss = - (labels * log_probs)
-        return loss.sum(dim=-1).mean() if self.reduction == "mean" else loss.sum()
+        probs = F.log_softmax(logits, dim=-1)
+        loss = -(probs[range(logits.shape[0]), labels] + 1e-9)
+        return loss.mean()
 
 class BCELoss(nn.Module): 
     def __init__(self): 
