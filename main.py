@@ -96,12 +96,12 @@ def main():
 
     model = get_ViT(patch_size=configs.ViT_patches, layers=configs.ViT_layers, num_classes = configs.num_class)
     if configs.model_save_path: 
-        print("[INFO] Model weights provided. Loading model weights to ViT.")
+        print("[INFO] Model weights provided. Loading model weights.")
         model.load_state_dict(torch.load(configs.model_save_path))
     
     optimizer = get_optimizer(model=model, lr = configs.lr, momentum=0.9, weight_decay=configs.weight_decay)
 
-    scheduler = get_scheduler(optimizer=optimizer, T_max = configs.epochs / 8, eta_min = 1e-6, last_epoch = -1)
+    scheduler = get_scheduler(optimizer=optimizer)
 
     logger = LOGWRITER(output_directory=configs.log_output_dir, total_epochs=configs.epochs)
 
