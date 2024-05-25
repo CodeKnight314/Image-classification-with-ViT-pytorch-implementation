@@ -5,7 +5,7 @@ from tqdm import tqdm
 import time
 import os
 from dataset import load_dataset
-from . import ViT
+import ViT
 from loss import CrossEntropyLoss
 from utils.log_writer import LOGWRITER
 from torch.nn import functional as F

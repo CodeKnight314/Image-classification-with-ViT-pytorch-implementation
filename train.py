@@ -1,12 +1,13 @@
 import torch 
 import torch.nn as nn 
-from model import * 
 from loss import *
 from dataset import * 
 from configs import *
 from tqdm import tqdm
 import time
 from utils.log_writer import LOGWRITER
+from ViT import * 
+from ResNet import *
 
 def train_step(model, opt, data, loss_fn):
     """
@@ -72,9 +73,9 @@ def train(model, opt, scheduler, dataloader, logger, loss_fn, epochs):
         scheduler.step()
 
 def main(): 
-    dataloader = load_dataset()
+    dataloader = load_dataset(mode="train")
 
-    model = ViT((3, configs.img_height, configs.img_width), patch_size=8, layers=12, num_classes=configs.num_class).to(configs.device)
+    model = ViT((3, configs.img_height, configs.img_width), patch_size=configs.ViT_patches, layers=configs.ViT_layers, num_classes=configs.num_class).to(configs.device)
 
     optimizer = get_optimizer(model, lr = 1e-4, betas=(0.9, 0.999), weight_decay=1e-3)
 
