@@ -92,8 +92,8 @@ def main():
     train_dl = load_dataset(mode = "train")
     valid_dl = load_dataset(mode = "test")
 
-    loss_fn = nn.CrossEntropyLoss() #Custom implementation is kinda screwed rn. 
-
+    loss_fn = CrossEntropyLoss() 
+    
     model = get_ResNet18(num_classes = configs.num_class)
     if configs.model_save_path: 
         print("[INFO] Model weights provided. Loading model weights to ViT.")
