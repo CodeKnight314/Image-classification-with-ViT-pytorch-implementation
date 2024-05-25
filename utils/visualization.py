@@ -166,10 +166,11 @@ def plot_confusion_matrix(confusion_matrix : torch.Tensor, num_classes : int, sa
     plt.xlabel('Predicted')
     plt.ylabel('True')
     plt.title('Confusion Matrix')
-    plt.show()
 
     if save_pth: 
         plt.savefig(save_pth)
+
+    plt.close()
 
 def count_labels(directory):
     """
