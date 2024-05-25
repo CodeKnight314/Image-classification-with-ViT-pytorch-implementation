@@ -93,15 +93,15 @@ def main():
     valid_dl = load_dataset(mode = "test")
 
     loss_fn = CrossEntropyLoss() 
-    
+
     model = get_ResNet18(num_classes = configs.num_class)
     if configs.model_save_path: 
         print("[INFO] Model weights provided. Loading model weights to ViT.")
         model.load_state_dict(torch.load(configs.model_save_path))
     
-    optimizer = get_optimizer(model=model, lr = 1e-4, betas=(0.9,0.999), weight_decay=1e-5)
+    optimizer = get_optimizer(model=model, lr = configs.lr, momentum=0.9, weight_decay=configs.weight_decay)
 
-    scheduler = get_scheduler(optimizer=optimizer, step_size = configs.epochs, gamma=0.5)
+    scheduler = get_scheduler(optimizer=optimizer, T_max = configs.epochs / 8, eta_min = 1e-6, last_epoch = -1)
 
     logger = LOGWRITER(output_directory=configs.log_output_dir, total_epochs=configs.epochs)
 

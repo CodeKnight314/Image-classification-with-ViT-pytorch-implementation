@@ -78,7 +78,7 @@ def get_optimizer(model, lr : float, momentum : Tuple[float], weight_decay : flo
     """
     return opt.SGD(model.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
 
-def get_scheduler(optimizer : torch.optim, step_size : int, gamma : float): 
+def get_scheduler(optimizer : torch.optim, T_max : int, eta_min : float = 1e-6, last_epoch : int = -1): 
     """
     Helper function for defining learning rate scheduler -> may try to define my own for fun but who knows?
 
@@ -87,4 +87,4 @@ def get_scheduler(optimizer : torch.optim, step_size : int, gamma : float):
         step_size (int): length of interval between each learning rate reduction 
         gamme (float): the rate at which the optimizer's learning rate decreases. New learning rate = lr * gamma at each step size interval
     """
-    return opt.lr_scheduler.MultiStepLR(optimizer, milestones=[100, 150], last_epoch=-1)
+    return opt.lr_scheduler.CosineAnnealingLR(optimizer, T_max=T_max, eta_min=eta_min, last_epoch=last_epoch)

@@ -16,7 +16,11 @@ batch_size = 128
 
 epochs = 200
 
-patches = 2
+patches = 8
+
+lr = 0.01
+
+weight_decay = 0.0015
 
 output_dir = "/workspace"
 
