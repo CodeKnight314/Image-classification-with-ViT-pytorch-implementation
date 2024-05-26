@@ -1,10 +1,8 @@
-from train import * 
-from eval import * 
 from ViT import *
 from ResNet import *
 from dataset import * 
 from loss import * 
-from utils.visualization import plot_confusion_matrix
+from utils.visualization import plot_confusion_matrix, confusion_matrix
 from utils.log_writer import * 
 import configs 
 from torch.nn import functional as F

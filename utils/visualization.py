@@ -146,7 +146,27 @@ def batch_noise(root_dir : str, output_dir : Union[str, None], show : bool = Fal
                               show=False)
     else: 
         raise ValueError(f"[Error] Invalid mode. {mode} is not available as a noise mode.")
-    
+
+def confusion_matrix(predictions: torch.Tensor, labels: torch.Tensor, num_class: int):
+    """
+    Computes the confusion matrix from predictions and labels.
+
+    Args:
+        predictions (torch.Tensor): The tensor containing the predicted class indices for each example.
+        labels (torch.Tensor): The tensor containing the actual class indices for each example.
+        num_class (int): The total number of classes.
+
+    Returns:
+        torch.Tensor: A confusion matrix of shape (num_class, num_class) where the element at position (i, j)
+                      represents the number of instances of class i predicted as class j.
+    """
+    conf_matrix = torch.zeros((num_class, num_class), dtype=torch.int64)
+
+    for p, t in zip(predictions.view(-1), labels.view(-1)):
+        conf_matrix[t.long(), p.long()] += 1
+
+    return conf_matrix 
+
 def plot_confusion_matrix(confusion_matrix : torch.Tensor, num_classes : int, save_pth : Union[str, None]):
     """
     Computes and plots a confusion matrix.

@@ -6,8 +6,6 @@ from utils.patches import *
 import configs 
 from loss import *
 from dataset import *
-from train import *
-from eval import *
 import optuna
 from tqdm import tqdm
 
@@ -166,28 +164,51 @@ def objective_vit(trial):
 
     patch_size = trial.suggest_categorical('patch_size', possible_patch_sizes)
     layers = trial.suggest_int('layers', 4, 12)
+    d_model = trial.suggest_categorical('d_model', [128, 256, 384, 512])
+
+    head = trial.suggest_categorical('heads', [2, 4, 8])
+
+    # Define categorical options for learning rate and weight decay as multiples of 1e-1 to 1e-5
+    lr_options = [1e-2, 5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5]
+    weight_decay_options = [5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-6]
+
+    lr = trial.suggest_categorical('lr', lr_options)
+    weight_decay = trial.suggest_categorical('weight_decay', weight_decay_options)
 
     train_loader = load_dataset(mode="train")
     test_loader = load_dataset(mode="test")
 
-    model = ViT(input_dim=(3, img_height, img_width), patch_size=patch_size, layers=layers, num_classes=configs.num_class).to(configs.device)
-    optimizer = get_AdamW_optimizer(model, lr=trial.suggest_loguniform('lr', 1e-5, 1e-1), weight_decay=trial.suggest_loguniform('weight_decay', 1e-6, 1e-1))
+    model = ViT(input_dim=(3, img_height, img_width), patch_size=patch_size, layers=layers, head=head, d_model=d_model, num_classes=configs.num_class).to(configs.device)
+    optimizer = get_AdamW_optimizer(model, lr=lr, weight_decay=weight_decay)
     criterion = nn.CrossEntropyLoss()
 
-    for epoch in tqdm(range(20), desc=f'Trial {trial.number+1}', unit='epoch'):
-        batched_values = []
-        for i, data in enumerate(train_loader):
-            loss = train_step(model, optimizer, data, criterion)
-            batched_values.append(loss)
+    for epoch in tqdm(range(10), desc=f'Trial {trial.number+1}: Training', unit='epoch'):
+        total_train_loss = 0
+        for images, labels in train_loader:
+            images, labels = images.to(device), labels.to(device)
+            optimizer.zero_grad()
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            total_train_loss += loss.item()
+    
+    total_val_loss = 0
+    total_precision = 0
+    total_recall = 0
+    total_accuracy = 0
+    with torch.no_grad():
+        for images, labels in tqdm(test_loader, desc=f"Trial {trial.number + 1}: Validation"):
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            total_val_loss += loss.item()
+            _, preds = torch.max(outputs, 1)
+            total_precision += (preds == labels).sum().item() / preds.size(0)
+            total_recall += (preds == labels).sum().item() / preds.size(0)
+            total_accuracy += (preds == labels).sum().item() / preds.size(0)
 
-        averaged_values = torch.tensor(batched_values).mean().item()
-
-    batched_values = []
-    for i, data in enumerate(test_loader):
-        loss, accuracy = eval_step(model, data, criterion, device=configs.device)
-        batched_values.append([loss, accuracy])
-
-    averaged_values = torch.tensor(batched_values).mean(dim=0)
+    averaged_values = torch.tensor(total_accuracy / len(test_loader)).mean(dim=0)
     return averaged_values[1] 
 
 if __name__ == '__main__':

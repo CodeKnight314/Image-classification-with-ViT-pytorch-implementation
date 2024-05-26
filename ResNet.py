@@ -3,10 +3,10 @@ import torch.nn as nn
 import optuna 
 from dataset import *
 from loss import * 
-from train import *
-from eval import *
 from tqdm import tqdm 
 import configs
+
+device = configs.device
 
 class ResBlock(nn.Module): 
     def __init__(self, input_channels: int, output_channels: int, stride: int): 
@@ -104,27 +104,37 @@ def objective_resnet(trial):
     test_loader = load_dataset(mode="test")
 
     model = ResNet(channels=channels, num_layers=num_layers, num_classes=configs.num_class).to(configs.device)
-    optimizer = get_optimizer(model, lr=lr, momentum=0, weight_decay=weight_decay)
+    optimizer = get_SGD_optimizer(model, lr=lr, momentum=0.9, weight_decay=weight_decay)
     criterion = nn.CrossEntropyLoss()
 
-    for epoch in tqdm(range(10), desc=f'Trial {trial.number+1}', unit='epoch'):
-        model.train()
-        batched_values = []
-        for data in train_loader:
-            loss = train_step(model, optimizer, data, criterion)
-            batched_values.append(loss)
-
-        averaged_values = torch.tensor(batched_values).mean().item()
-
-    model.eval()
-    batched_values = []
+    for epoch in tqdm(range(10), desc=f'Trial {trial.number+1}: Training', unit='epoch'):
+        total_train_loss = 0
+        for images, labels in train_loader:
+            images, labels = images.to(device), labels.to(device)
+            optimizer.zero_grad()
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            total_train_loss += loss.item()
+    
+    total_val_loss = 0
+    total_precision = 0
+    total_recall = 0
+    total_accuracy = 0
     with torch.no_grad():
-        for data in test_loader:
-            loss, accuracy = eval_step(model, data, criterion, device=configs.device)
-            batched_values.append([loss, accuracy])
+        for images, labels in tqdm(test_loader, desc=f"Trial {trial.number + 1}: Validation"):
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            total_val_loss += loss.item()
+            _, preds = torch.max(outputs, 1)
+            total_precision += (preds == labels).sum().item() / preds.size(0)
+            total_recall += (preds == labels).sum().item() / preds.size(0)
+            total_accuracy += (preds == labels).sum().item() / preds.size(0)
 
-    averaged_values = torch.tensor(batched_values).mean(dim=0)
-    return averaged_values[1]  # Return the average accuracy
+    averaged_values = torch.tensor(total_accuracy / len(test_loader)).mean(dim=0)
+    return averaged_values[1] 
 
 if __name__ == '__main__':
     study_resnet = optuna.create_study(direction='maximize')
