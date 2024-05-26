@@ -209,7 +209,7 @@ def objective_vit(trial):
             total_accuracy += (preds == labels).sum().item() / preds.size(0)
 
     averaged_values = torch.tensor(total_accuracy / len(test_loader)).mean(dim=0)
-    return averaged_values[1] 
+    return averaged_values
 
 if __name__ == '__main__':
     study_vit = optuna.create_study(direction='maximize')
