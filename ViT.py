@@ -174,7 +174,7 @@ def objective_vit(trial):
     optimizer = get_AdamW_optimizer(model, lr=trial.suggest_loguniform('lr', 1e-5, 1e-1), weight_decay=trial.suggest_loguniform('weight_decay', 1e-6, 1e-1))
     criterion = nn.CrossEntropyLoss()
 
-    for epoch in tqdm(range(10), desc=f'Trial {trial.number+1}', unit='epoch'):
+    for epoch in tqdm(range(20), desc=f'Trial {trial.number+1}', unit='epoch'):
         batched_values = []
         for i, data in enumerate(train_loader):
             loss = train_step(model, optimizer, data, criterion)
