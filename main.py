@@ -84,7 +84,8 @@ def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, 
         logger.write(epoch=epoch+1, tr_loss=avg_train_loss, val_loss=avg_val_loss,
                      precision=avg_precision, recall=avg_recall, accuracy=avg_accuracy)
 
-        scheduler.step(avg_val_loss)
+        if epoch > 10:
+            scheduler.step()
 
 def main():
     configs.main()
@@ -101,7 +102,7 @@ def main():
     
     optimizer = get_AdamW_optimizer(model=model, lr = configs.lr, weight_decay=configs.weight_decay)
 
-    scheduler = get_scheduler(optimizer=optimizer)
+    scheduler = opt.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=configs.epochs-10, eta_min=1e-5, last_epoch=-1, verbose=False)
 
     logger = LOGWRITER(output_directory=configs.log_output_dir, total_epochs=configs.epochs)
 
