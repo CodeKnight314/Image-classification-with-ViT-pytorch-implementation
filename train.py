@@ -77,7 +77,7 @@ def main():
 
     model = ViT((3, configs.img_height, configs.img_width), patch_size=configs.ViT_patches, layers=configs.ViT_layers, num_classes=configs.num_class).to(configs.device)
 
-    optimizer = get_optimizer(model, lr = 1e-4, betas=(0.9, 0.999), weight_decay=1e-3)
+    optimizer = get_AdamW_optimizer(model, lr = 1e-4, betas=(0.9, 0.999), weight_decay=1e-3)
 
     scheduler = get_scheduler(optimizer=optimizer, step_size=configs.epochs//5, gamma=0.5)
 

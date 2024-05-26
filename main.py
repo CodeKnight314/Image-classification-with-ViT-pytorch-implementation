@@ -84,7 +84,7 @@ def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, 
         logger.write(epoch=epoch+1, tr_loss=avg_train_loss, val_loss=avg_val_loss,
                      precision=avg_precision, recall=avg_recall, accuracy=avg_accuracy)
 
-        scheduler.step()
+        scheduler.step(avg_val_loss)
 
 def main():
     configs.main()
@@ -99,7 +99,7 @@ def main():
         print("[INFO] Model weights provided. Loading model weights.")
         model.load_state_dict(torch.load(configs.model_save_path))
     
-    optimizer = get_optimizer(model=model, lr = configs.lr, momentum=0.9, weight_decay=configs.weight_decay)
+    optimizer = get_AdamW_optimizer(model=model, lr = configs.lr, weight_decay=configs.weight_decay)
 
     scheduler = get_scheduler(optimizer=optimizer)
 

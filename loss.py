@@ -63,20 +63,31 @@ class HingeLoss(nn.Module):
         loss = (1 - labels * probs).sum(dim=-1).mean().item()
         return max(0, loss)
 
-def get_optimizer(model, lr : float, momentum : Tuple[float], weight_decay : float): 
+def get_SGD_optimizer(model, lr : float, momentum : Tuple[float], weight_decay : float): 
     """
     Helper function for defining optimizer 
 
     Args: 
         model : the model associated with the given optimizer 
         lr (float): learning rate for the optimizer 
-        betas (Tuple[float]): a pair of floats
-        weight_decay (float): determine rate of weight decay
 
     Returns:
         torch.optim : optimizer with the given parameters
     """
     return opt.SGD(model.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
+
+def get_AdamW_optimizer(model, lr : float = 5e-4, weight_decay : float = 1e-3): 
+    """
+    Helper function for defining AdamW optimizer 
+
+    Args: 
+        model : the model associated with the given optimizer 
+        lr (float): learning rate for the optimizer
+    
+    Returns:
+        torch.optim : optimizer with the given paramters
+    """
+    return opt.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
 
 def get_scheduler(optimizer: torch.optim.Optimizer, mode: str = 'min', factor: float = 0.1, patience: int = 10, verbose: bool = False, threshold: float = 0.02, threshold_mode: str = 'rel', cooldown: int = 0, min_lr: float = 1e-6, eps: float = 1e-8):
     """

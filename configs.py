@@ -16,8 +16,8 @@ batch_size = 128
 
 epochs = 200
 
-ViT_patches = 8
-ViT_layers = 9
+ViT_patches = 4
+ViT_layers = 6
 
 lr = 0.01
 

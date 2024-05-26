@@ -118,9 +118,11 @@ class ViT(nn.Module):
     def __init__(self, input_dim=(3, 320, 320), patch_size=8, layers=12, num_classes=12):
         super().__init__()
 
-        self.d_model = min(input_dim[0] * patch_size ** 2, 512)
+        self.d_model = 128
+        self.head = 4
         self.patch_size = patch_size
         self.input_dim = input_dim
+        self.dropout = 0.1
 
         self.patch_embed = PatchEmbeddingConv(input_channels=input_dim[0], patch_size=patch_size)
 
@@ -128,11 +130,11 @@ class ViT(nn.Module):
 
         self.init_pos_encod()
 
-        self.encoder_stack = nn.Sequential(*[EncoderBlock(self.d_model, self.d_model, self.d_model, 12, dropout=0.3) for _ in range(layers)])
+        self.encoder_stack = nn.Sequential(*[EncoderBlock(self.d_model, self.d_model, self.d_model, 4, dropout=self.dropout) for _ in range(layers)])
 
         self.classifier_head = nn.Sequential(*[nn.LayerNorm(self.d_model),
                                                nn.Linear(self.d_model, num_classes),
-                                               nn.Dropout(0.3)])
+                                               nn.Dropout(self.dropout)])
 
     def init_pos_encod(self):
         n_patches = (self.input_dim[1] // self.patch_size) * (self.input_dim[2] // self.patch_size)
@@ -148,8 +150,8 @@ class ViT(nn.Module):
 
         return self.classifier_head(x[:, 0, :])
     
-def get_ViT(input_dim: Tuple[int] = (3, configs.img_height, configs.img_width), patch_size=configs.patches, layers: int = 12, device: str = configs.device):
-    return ViT(input_dim=input_dim, patch_size=patch_size, layers=layers, num_classes=configs.num_class).to(device)
+def get_ViT(input_dim: Tuple[int] = (3, configs.img_height, configs.img_width), patch_size=configs.ViT_patches, layers: int = configs.ViT_layers, num_classes = configs.num_class, device: str = configs.device):
+    return ViT(input_dim=input_dim, patch_size=patch_size, layers=layers, num_classes=num_classes).to(device)
 
 def objective_vit(trial):
     # Get image dimensions from configs
@@ -169,7 +171,7 @@ def objective_vit(trial):
     test_loader = load_dataset(mode="test")
 
     model = ViT(input_dim=(3, img_height, img_width), patch_size=patch_size, layers=layers, num_classes=configs.num_class).to(configs.device)
-    optimizer = get_optimizer(model, lr=trial.suggest_loguniform('lr', 1e-5, 1e-1), momentum=0.9, weight_decay=trial.suggest_loguniform('weight_decay', 1e-6, 1e-1))
+    optimizer = get_AdamW_optimizer(model, lr=trial.suggest_loguniform('lr', 1e-5, 1e-1), weight_decay=trial.suggest_loguniform('weight_decay', 1e-6, 1e-1))
     criterion = nn.CrossEntropyLoss()
 
     for epoch in tqdm(range(10), desc=f'Trial {trial.number+1}', unit='epoch'):
