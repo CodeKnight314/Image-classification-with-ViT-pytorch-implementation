@@ -113,16 +113,16 @@ class EncoderBlock(nn.Module):
         return x
 
 class ViT(nn.Module):
-    def __init__(self, input_dim=(3, 320, 320), patch_size=8, layers=12, num_classes=12):
+    def __init__(self, input_dim=(3, 320, 320), patch_size=8, layers=12, num_classes=12, d_model = 512, head = 8):
         super().__init__()
 
-        self.d_model = 128
-        self.head = 4
+        self.d_model = d_model
+        self.head = head
         self.patch_size = patch_size
         self.input_dim = input_dim
         self.dropout = 0.1
 
-        self.patch_embed = PatchEmbeddingConv(input_channels=input_dim[0], patch_size=patch_size)
+        self.patch_embed = PatchEmbeddingConv(input_channels=input_dim[0], patch_size=patch_size, d_model=self.d_model)
 
         self.class_token = nn.Parameter(data=torch.randn(1, 1, self.d_model), requires_grad=True)
 
