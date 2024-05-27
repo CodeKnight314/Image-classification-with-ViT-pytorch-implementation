@@ -113,7 +113,7 @@ class EncoderBlock(nn.Module):
         return x
 
 class ViT(nn.Module):
-    def __init__(self, input_dim=(3, 320, 320), patch_size=8, layers=12, num_classes=12, d_model = 512, head = 8):
+    def __init__(self, input_dim=(3, 320, 320), patch_size=8, layers=12, num_classes=12, d_model = 512, head = 4):
         super().__init__()
 
         self.d_model = d_model
@@ -148,8 +148,14 @@ class ViT(nn.Module):
 
         return self.classifier_head(x[:, 0, :])
     
-def get_ViT(input_dim: Tuple[int] = (3, configs.img_height, configs.img_width), patch_size=configs.ViT_patches, layers: int = configs.ViT_layers, num_classes = configs.num_class, device: str = configs.device):
-    return ViT(input_dim=input_dim, patch_size=patch_size, layers=layers, num_classes=num_classes).to(device)
+def get_ViT(input_dim: Tuple[int] = (3, configs.img_height, configs.img_width), 
+            patch_size=configs.ViT_patches, 
+            layers: int = configs.ViT_layers, 
+            d_model : int = configs.ViT_d_model, 
+            head : int = configs.ViT_head,
+            num_classes = configs.num_class, device: str = configs.device):
+    
+    return ViT(input_dim=input_dim, patch_size=patch_size, layers=layers, d_model=d_model, head=head, num_classes=num_classes).to(device)
 
 def objective_vit(trial):
     # Get image dimensions from configs
@@ -178,7 +184,7 @@ def objective_vit(trial):
     train_loader = load_dataset(mode="train")
     test_loader = load_dataset(mode="test")
 
-    model = ViT(input_dim=(3, img_height, img_width), patch_size=patch_size, layers=layers, head=head, d_model=d_model, num_classes=configs.num_class).to(configs.device)
+    model = ViT(input_dim=(3, img_height, img_width), num_classes=configs.num_class).to(configs.device)
     optimizer = get_AdamW_optimizer(model, lr=lr, weight_decay=weight_decay)
     criterion = nn.CrossEntropyLoss()
 

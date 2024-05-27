@@ -18,6 +18,8 @@ epochs = 200
 
 ViT_patches = 4
 ViT_layers = 6
+ViT_d_model = 512 
+ViT_head = 4
 
 lr = 0.01
 

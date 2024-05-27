@@ -93,7 +93,8 @@ def main():
 
     loss_fn = CrossEntropyLoss() 
 
-    model = get_ViT(patch_size=configs.ViT_patches, layers=configs.ViT_layers, num_classes = configs.num_class)
+    model = get_ViT(num_classes = configs.num_class)
+
     if configs.model_save_path: 
         print("[INFO] Model weights provided. Loading model weights.")
         model.load_state_dict(torch.load(configs.model_save_path))
