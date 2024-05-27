@@ -21,9 +21,9 @@ ViT_layers = 6
 ViT_d_model = 512 
 ViT_head = 4
 
-lr = 0.01
+lr = 1e-4
 
-weight_decay = 0.0015
+weight_decay = 1e-4
 
 output_dir = "/workspace"
 
