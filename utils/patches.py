@@ -37,13 +37,13 @@ class PatchEmbedding(nn.Module):
         return x
     
 class PatchEmbeddingConv(nn.Module): 
-    def __init__(self, input_channels : int = 3, patch_size : int = 16): 
+    def __init__(self, input_channels : int = 3, patch_size : int = 16, d_model : int = 512): 
         super().__init__()
 
         self.input_channels = input_channels 
         self.patch_size = patch_size 
 
-        self.in_conv = nn.Conv2d(in_channels=input_channels, out_channels=input_channels * patch_size**2, kernel_size=patch_size, stride=patch_size, padding=0)
+        self.in_conv = nn.Conv2d(in_channels=input_channels, out_channels=d_model, kernel_size=patch_size, stride=patch_size, padding=0)
         self.flatten = nn.Flatten(start_dim=2, end_dim=3)
 
     def forward(self, x): 
