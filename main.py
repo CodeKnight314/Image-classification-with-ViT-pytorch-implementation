@@ -82,7 +82,7 @@ def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, 
         logger.write(epoch=epoch+1, tr_loss=avg_train_loss, val_loss=avg_val_loss,
                      precision=avg_precision, recall=avg_recall, accuracy=avg_accuracy)
 
-        if epoch > 10:
+        if epoch > configs.warm_up_epochs:
             scheduler.step()
 
 def main():
@@ -90,20 +90,33 @@ def main():
 
     train_dl = load_dataset(mode = "train")
     valid_dl = load_dataset(mode = "test")
+    print(f"[INFO] Training Dataloader loaded with {len(train_dl)} batches.")
+    print(f"[INFO] Validation Dataloader loaded with {len(valid_dl)} batches.")
 
     loss_fn = CrossEntropyLoss() 
+    print("[INFO] Cross Entropy Function loaded.")
 
     model = get_ViT(num_classes = configs.num_class)
+    print("[INFO] Model loaded with the following attributes:")
+    print(f"[INFO] *: patch size: {model.patch_size}.")
+    print(f"[INFO] *: num_layers: {model.layers}.")
+    print(f"[INFO] *: d_model: {model.d_model}.")
+    print(f"[INFO] *: number of attention heads: {model.head}.")
 
     if configs.model_save_path: 
         print("[INFO] Model weights provided. Loading model weights.")
         model.load_state_dict(torch.load(configs.model_save_path))
     
     optimizer = get_AdamW_optimizer(model=model, lr = configs.lr, weight_decay=configs.weight_decay)
+    print(f"[INFO] Optimizer loaded with learning rate: {configs.lr}.")
 
     scheduler = opt.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=configs.epochs-10, eta_min=1e-5, last_epoch=-1, verbose=False)
+    print(f"[INFO] CosineAnnealingLR Scheduler loaded.")
 
     logger = LOGWRITER(output_directory=configs.log_output_dir, total_epochs=configs.epochs)
+    print(f"[INFO] Log writer loaded and binded to {configs.log_output_dir}")
+    print(f"[INFO] Total epochs: {configs.epochs}")
+    print(f"[INFO] Warm Up Phase: {configs.warm_up_epochs} epochs")
 
     train_and_evaluate(model=model, optimizer=optimizer, scheduler=scheduler, train_dl=train_dl, valid_dl=valid_dl, logger=logger, loss_fn=loss_fn, epochs=configs.epochs)
 

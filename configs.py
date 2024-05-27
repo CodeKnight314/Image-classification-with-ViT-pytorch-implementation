@@ -14,7 +14,8 @@ model_save_path = None
 
 batch_size = 128
 
-epochs = 200
+warm_up_epochs = 10
+epochs = 100
 
 ViT_patches = 4
 ViT_layers = 6

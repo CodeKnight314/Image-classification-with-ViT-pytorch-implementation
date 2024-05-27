@@ -120,6 +120,7 @@ class ViT(nn.Module):
         self.head = head
         self.patch_size = patch_size
         self.input_dim = input_dim
+        self.layers = layers
         self.dropout = 0.1
 
         self.patch_embed = PatchEmbeddingConv(input_channels=input_dim[0], patch_size=patch_size, d_model=self.d_model)
