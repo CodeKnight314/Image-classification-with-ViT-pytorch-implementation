@@ -110,7 +110,7 @@ def main():
     optimizer = get_AdamW_optimizer(model=model, lr = configs.lr, weight_decay=configs.weight_decay)
     print(f"[INFO] Optimizer loaded with learning rate: {configs.lr}.")
 
-    scheduler = opt.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=configs.epochs-10, eta_min=1e-5, last_epoch=-1, verbose=False)
+    scheduler = opt.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=configs.epochs-10, eta_min=1e-5, last_epoch=-1)
     print(f"[INFO] CosineAnnealingLR Scheduler loaded.")
 
     logger = LOGWRITER(output_directory=configs.log_output_dir, total_epochs=configs.epochs)

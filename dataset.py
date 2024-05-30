@@ -18,10 +18,18 @@ class ImgClsDataset(Dataset):
         if transforms: 
             self.transforms = transforms 
         else: 
-            self.transforms = T.Compose([T.Resize((self.img_height, self.img_width), T.InterpolationMode.BICUBIC), 
-                                         T.RandomHorizontalFlip(0.25), 
-                                         T.RandomVerticalFlip(0.25), 
-                                         T.ToTensor()])
+            if mode == "train":
+                self.transforms = T.Compose([T.Resize((self.img_height, self.img_width), T.InterpolationMode.BICUBIC),
+                                            T.RandomCrop(32, padding=4),
+                                            T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
+                                            T.RandomHorizontalFlip(0.25), 
+                                            T.RandomVerticalFlip(0.25), 
+                                            T.ToTensor(),
+                                            T.Normalize((0.49139968, 0.48215841, 0.44653091),(0.24703223, 0.24348513,0.26158784))])
+            elif mode == "test":
+                self.transforms = T.Compose([T.Resize((self.img_height, self.img_width), T.InterpolationMode.BICUBIC),
+                                            T.ToTensor(),
+                                            T.Normalize((0.49139968, 0.48215841, 0.44653091),(0.24703223, 0.24348513,0.26158784))])
         self.id_to_class_dict = {} 
         self.class_to_id_dict = {}
         self.images = []

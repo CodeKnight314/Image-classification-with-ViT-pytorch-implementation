@@ -3,7 +3,7 @@ import os
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-root_dir = "/workspace/cifar10/cifar10"
+root_dir = r"C:\Users\richa\Desktop\cifar10\cifar10"
 
 img_height = 32
 img_width = 32
@@ -18,7 +18,7 @@ warm_up_epochs = 10
 epochs = 100
 
 ViT_patches = 4
-ViT_layers = 6
+ViT_layers = 10
 ViT_d_model = 512 
 ViT_head = 4
 
@@ -26,7 +26,7 @@ lr = 1e-4
 
 weight_decay = 1e-4
 
-output_dir = "/workspace"
+output_dir = r"C:\Users\richa\Desktop"
 
 log_output_dir = os.path.join(output_dir, "log_outputs")
 
