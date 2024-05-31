@@ -1,6 +1,14 @@
 import torch 
 import os
 
+def count_folders_with_prefix(directory, prefix):
+    count = 0
+    for root, dirs, files in os.walk(directory):
+        for dir_name in dirs:
+            if dir_name.startswith(prefix):
+                count += 1
+    return count
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 root_dir = r"C:\Users\richa\Desktop\cifar10\cifar10"
@@ -18,7 +26,7 @@ warm_up_epochs = 10
 epochs = 100
 
 ViT_patches = 4
-ViT_layers = 10
+ViT_layers = 8
 ViT_d_model = 512 
 ViT_head = 4
 
@@ -26,7 +34,7 @@ lr = 1e-4
 
 weight_decay = 1e-4
 
-output_dir = r"C:\Users\richa\Desktop"
+output_dir = os.path.join(r"C:\Users\richa\Desktop", f"Trial_{count_folders_with_prefix(r"C:\Users\richa\Desktop", "Trial")+1}")
 
 log_output_dir = os.path.join(output_dir, "log_outputs")
 
