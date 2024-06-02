@@ -211,3 +211,53 @@ def count_labels(directory):
             label_counts[label] = len([f for f in os.listdir(label_dir) if os.path.isfile(os.path.join(label_dir, f))])
     
     return dict(label_counts)
+
+def plot_data(output_log, output_directory, save_fig, show_fig): 
+    """
+    """
+    file = open(output_log, 'r').split("\n")
+
+    tr_loss_ls = []
+    val_loss_ls = []
+    accuracy_ls = []
+     
+    for i in range(len(file)):
+        line = file[i].split(" ")
+
+        tr_loss_ls.append(line[4])
+        val_loss_ls.append(line[8])
+        accuracy_ls.append(line[12])
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot([i for i in range(1, len(tr_loss_ls) + 1)], tr_loss_ls, label="Training Loss")
+    plt.plot([i for i in range(1, len(val_loss_ls) + 1)], val_loss_ls, label="Validation loss")
+    plt.title("Training and Validation Loss over Epochs")
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.legend() 
+
+    if save_fig: 
+        plt.savefig(os.path.join(output_directory, "Training_Validation_Loss.png"))
+
+    if show_fig: 
+        plt.show() 
+    
+    plt.close() 
+
+    plt.figure(figsize=(10, 6))
+    plt.plot([i for i in range(1, len(accuracy_ls) + 1)], accuracy_ls, label="Accuracy")
+    plt.title("Accuracy over Epochs")
+    plt.xlabel("Epochs")
+    plt.ylabel("Accuracy")
+    plt.legend() 
+
+    if save_fig: 
+        plt.savefig(os.path.join(output_directory, "Accuracy.png"))
+    
+    if show_fig: 
+        plt.show() 
+
+    plt.close()
+
+    
+
