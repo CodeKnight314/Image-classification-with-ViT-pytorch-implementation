@@ -8,17 +8,17 @@ from dataset import *
 import optuna
 from tqdm import tqdm
 
-class PatchEmbeddingConv(nn.Module): 
-    def __init__(self, input_channels : int = 3, patch_size : int = 16, d_model : int = 512): 
+class PatchEmbeddingConv(nn.Module):
+    def __init__(self, input_channels : int = 3, patch_size : int = 16, d_model : int = 512):
         super().__init__()
 
-        self.input_channels = input_channels 
-        self.patch_size = patch_size 
+        self.input_channels = input_channels
+        self.patch_size = patch_size
 
         self.in_conv = nn.Conv2d(in_channels=input_channels, out_channels=d_model, kernel_size=patch_size, stride=patch_size, padding=0)
         self.flatten = nn.Flatten(start_dim=2, end_dim=3)
 
-    def forward(self, x): 
+    def forward(self, x):
         """
         Forward pass that uses a convolutional layer to extract and flatten image patches.
 
@@ -34,40 +34,37 @@ class PatchEmbeddingConv(nn.Module):
         return x.permute(0, 2, 1)
 
 class SEBlock(nn.Module): 
-    def __init__(self, channels, reduction): 
-        super().__init__() 
-        
-        assert channels % reduction, f"[ERROR] Channels is not divisible by reduction."
-
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+    def __init__(self, channel, reduction=16):
+        super(SEBlock, self).__init__()
         self.fc = nn.Sequential(
-            nn.Linear(channels, channels // reduction, bias = False), 
-            nn.ReLU(),
-            nn.Linear(channels // reduction, channels, bias = False), 
+            nn.Linear(channel, channel // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(channel // reduction, channel, bias=False),
             nn.Sigmoid()
         )
-    
-    def forward(self, x): 
-        b, c, _, _ = x.size() 
-        y = self.avg_pool(x).view(b, c)
-        y = self.fc(y).view(b, c, 1, 1)
+
+    def forward(self, x):
+        b, n, c = x.size()  
+        y = x.mean(dim=1)
+        y = self.fc(y)
+        y = y.view(b, 1, c)
         return x * y.expand_as(x)
 
-class MSA(nn.Module): 
+class MSA(nn.Module):
     def __init__(self, d_model : int, head : int):
         assert d_model % head == 0, f"[Error] d_model {d_model} is not divisible by head {head} in MSA Module"
         super().__init__()
 
-        self.d_model = d_model 
+        self.d_model = d_model
         self.head = head
-        self.d_k = d_model // head 
+        self.d_k = d_model // head
 
         self.W_Q = nn.Linear(self.d_model, self.d_k * self.head)
         self.W_K = nn.Linear(self.d_model, self.d_k * self.head)
         self.W_V = nn.Linear(self.d_model, self.d_k * self.head)
         self.W_O = nn.Linear(self.d_k * self.head, self.d_model)
 
-    def scaled_dot_product(self, Queries, Keys, Values, Mask : Union[None, torch.Tensor] = None): 
+    def scaled_dot_product(self, Queries, Keys, Values, Mask : Union[None, torch.Tensor] = None):
         """
         Computes the scaled dot-product attention over the inputs.
 
@@ -80,8 +77,8 @@ class MSA(nn.Module):
             torch.Tensor: The output tensor after applying attention and weighted sum operations.
         """
         attn_score = torch.matmul(Queries, torch.transpose(Keys, -2, -1)) / math.sqrt(self.d_k) # Measures similarities between each set of queries and keys
-        if Mask: 
-            attn_scores = attn_scores.masked_fill(Mask == 0, -1e9)        
+        if Mask:
+            attn_scores = attn_scores.masked_fill(Mask == 0, -1e9)
         QK_probs = torch.softmax(attn_score, dim = -1) # Scales the similarities between each query in Q to the entire set of Keys as probabilities
         output = torch.matmul(QK_probs, Values) # Transforms values into weighted sums, reflecting importance of each value within Values
         return output
@@ -110,15 +107,15 @@ class MSA(nn.Module):
 
         return context
 
-class FFN(nn.Module): 
+class FFN(nn.Module):
     def __init__(self, input_dim : int, hidden_dim : int, output_dim : int):
-        super().__init__() 
+        super().__init__()
 
         self.l_1 = nn.Linear(input_dim, hidden_dim)
         self.l_2 = nn.Linear(hidden_dim, output_dim)
         self.relu = nn.ReLU()
-    
-    def forward(self, x): 
+
+    def forward(self, x):
         """
         Forward pass through the feed-forward network. Applies a linear transformation followed by a ReLU activation
         and another linear transformation.
@@ -130,22 +127,22 @@ class FFN(nn.Module):
             torch.Tensor: Output tensor of shape [batch size, output dimension].
         """
         return self.l_2(self.relu(self.l_1(x)))
-    
-class EncoderBlock(nn.Module): 
-    def __init__(self, input_dim, hidden_dim, outuput_dim, head, dropout): 
+
+class EncoderBlock(nn.Module):
+    def __init__(self, input_dim, hidden_dim, outuput_dim, head, dropout):
         super().__init__()
 
         self.msa = MSA(d_model=input_dim, head=head)
         self.ffn = FFN(input_dim=input_dim, hidden_dim=hidden_dim, output_dim=outuput_dim)
-        self.se_msa = SEBlock(input_dim, 16)
-        self.se_ffn = SEBlock(outuput_dim, 16)
+        self.se_msa = SEBlock(input_dim, 8)
+        self.se_ffn = SEBlock(outuput_dim, 8)
         self.l_norm_1 = nn.LayerNorm(input_dim)
         self.l_norm_2 = nn.LayerNorm(outuput_dim)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
         """
-        Processes input through the encoder block, applying multi-head self-attention, feed-forward network, 
+        Processes input through the encoder block, applying multi-head self-attention, feed-forward network,
         and residual connections with layer normalization.
 
         Args:
@@ -153,11 +150,11 @@ class EncoderBlock(nn.Module):
 
         Returns:
             torch.Tensor: The output tensor from the encoder block after processing.
-        """ 
+        """
         x = x + self.l_norm_1(self.msa(x, x, x))
-        x = self.se_msa(x.unsqueeze(2).unsqueeze(3)).squeeze(3).squeeze(2)
+        x = self.se_msa(x)
         x = x + self.l_norm_2(self.ffn(x))
-        x = self.se_ffn(x.unsqueeze(2).unsqueeze(3)).squeeze(3).squeeze(2)
+        x = self.se_ffn(x)
         return x
 
 class ViT(nn.Module):
