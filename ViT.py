@@ -158,7 +158,7 @@ class EncoderBlock(nn.Module):
         return x
 
 class ViT(nn.Module):
-    def __init__(self, input_dim=(3, 320, 320), patch_size=8, layers=12, num_classes=12, d_model=512, head=4):
+    def __init__(self, input_dim=(3, 320, 320), patch_size=8, layers=12, d_model=512, head=4, num_classes=12):
         super().__init__()
 
         self.d_model = d_model
@@ -219,11 +219,9 @@ def get_ViT(input_dim: Tuple[int] = (3, configs.img_height, configs.img_width),
     return ViT(input_dim=input_dim, patch_size=patch_size, layers=layers, d_model=d_model, head=head, num_classes=num_classes).to(device)
 
 def objective_vit(trial):
-    # Get image dimensions from configs
     img_height = configs.img_height
     img_width = configs.img_width
     
-    # Create a list of possible patch sizes that are divisors of both img_height and img_width
     possible_patch_sizes = [i for i in range(2, 9) if img_height % i == 0 and img_width % i == 0]
 
     if not possible_patch_sizes:
@@ -245,7 +243,7 @@ def objective_vit(trial):
     train_loader = load_dataset(mode="train")
     test_loader = load_dataset(mode="test")
 
-    model = ViT(input_dim=(3, img_height, img_width), num_classes=configs.num_class).to(configs.device)
+    model = get_ViT(input_dim=(3, img_height, img_width), patch_size=patch_size, layers=layers, d_model=d_model, head=head, num_classes=configs.num_class).to(configs.device)
     optimizer = get_AdamW_optimizer(model, lr=lr, weight_decay=weight_decay)
     criterion = nn.CrossEntropyLoss()
 
