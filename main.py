@@ -96,12 +96,25 @@ def main():
     loss_fn = CrossEntropyLoss() 
     print("[INFO] Cross Entropy Function loaded.")
 
-    model = get_ViT(num_classes = configs.num_class)
-    print("[INFO] Model loaded with the following attributes:")
-    print(f"[INFO] *: patch size: {model.patch_size}.")
-    print(f"[INFO] *: num_layers: {model.layers}.")
-    print(f"[INFO] *: d_model: {model.d_model}.")
-    print(f"[INFO] *: number of attention heads: {model.head}.")
+    if configs.model == "ViT":
+        model = get_ViT(num_classes = configs.num_class)
+        print("[INFO] ViT Model loaded with the following attributes:")
+        print(f"[INFO] *: patch size: {model.patch_size}.")
+        print(f"[INFO] *: num_layers: {model.layers}.")
+        print(f"[INFO] *: d_model: {model.d_model}.")
+        print(f"[INFO] *: number of attention heads: {model.head}.")
+    elif configs.model == "ResNet18": 
+        model = get_ResNet18(num_classes = configs.num_class)
+        print("[INFO] ResNet18 Model loaded with the following attributs: ")
+        print(f"[INFO] *: Channels: {model.channels}")
+        print(f"[INFO] *: Layers: {model.num_layers}")
+    elif configs.model == "ResNet34": 
+        model = get_ResNet34(num_classes=configs.num_class)
+        print("[INFO] ResNet34 Model loaded with the following attributs: ")
+        print(f"[INFO] *: Channels: {model.channels}")
+        print(f"[INFO] *: Layers: {model.num_layers}")
+    else: 
+        raise ValueError(f"[ERROR] Model not found or not confingured")
 
     if configs.model_save_path: 
         print("[INFO] Model weights provided. Loading model weights.")
