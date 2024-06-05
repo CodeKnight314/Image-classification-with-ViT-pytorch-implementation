@@ -50,6 +50,9 @@ id_to_category_dict = None
 
 category_to_id_dict = None
 
+#Available Options: ViT, ResNet18, ResNet34
+model = "ResNet18"
+
 def main(): 
     if not os.path.exists(log_output_dir): 
         os.makedirs(log_output_dir)

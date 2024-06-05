@@ -93,10 +93,10 @@ def get_ResNet18(num_classes: int = configs.num_class, device : str = configs.de
 def get_ResNet34(num_classes: int = configs.num_class, device : str = configs.device):
     return ResNet(channels=[64, 128, 256, 512], num_layers=[3, 4, 6, 3], num_classes=num_classes).to(device)
 
-def get_ResNet50(channels=[64, 128, 256, 512], num_layers=[3, 4, 6, 3], num_classes: int = configs.num_class, device : str = configs.device): 
-    return ResNet(channels=channels, num_layers=num_layers, num_classes=num_classes).to(device)
-
 def objective_resnet(trial):
+    """
+    Hyperparameter tuning of ResNet18 for Image classification
+    """
     channels = [64, 128, 256, 512]
     num_layers = [2, 2, 2, 2]
     
