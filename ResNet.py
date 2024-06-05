@@ -97,7 +97,6 @@ def get_ResNet50(channels=[64, 128, 256, 512], num_layers=[3, 4, 6, 3], num_clas
     return ResNet(channels=channels, num_layers=num_layers, num_classes=num_classes).to(device)
 
 def objective_resnet(trial):
-    # Fixed channels and num_layers for ResNet-18
     channels = [64, 128, 256, 512]
     num_layers = [2, 2, 2, 2]
     
