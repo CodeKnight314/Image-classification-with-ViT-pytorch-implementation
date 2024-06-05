@@ -60,6 +60,9 @@ class ResNet(nn.Module):
 
         assert len(channels) == len(num_layers), "[ERROR] Channels and Layers lists do not match in length."
 
+        self.channels = channels
+        self.num_layers = num_layers
+
         self.input_conv = nn.Sequential(*[nn.Conv2d(in_channels = 3, out_channels = 64, kernel_size=7, stride=2, padding=3, bias=False),
                                           nn.BatchNorm2d(64), 
                                           nn.ReLU(),
@@ -84,11 +87,11 @@ class ResNet(nn.Module):
 
         return logits
     
-def get_ResNet18(channels=[64, 128, 256, 512], num_layers=[2, 2, 2, 2], num_classes: int = configs.num_class, device : str = configs.device): 
-    return ResNet(channels=channels, num_layers=num_layers, num_classes=num_classes).to(device)
+def get_ResNet18(num_classes: int = configs.num_class, device : str = configs.device): 
+    return ResNet(channels=[64, 128, 256, 512], num_layers=[2, 2, 2, 2], num_classes=num_classes).to(device)
 
-def get_ResNet34(channels=[64, 128, 256, 512], num_layers=[3, 4, 6, 3], num_classes: int = configs.num_class, device : str = configs.device):
-    return ResNet(channels=channels, num_layers=num_layers, num_classes=num_classes).to(device)
+def get_ResNet34(num_classes: int = configs.num_class, device : str = configs.device):
+    return ResNet(channels=[64, 128, 256, 512], num_layers=[3, 4, 6, 3], num_classes=num_classes).to(device)
 
 def get_ResNet50(channels=[64, 128, 256, 512], num_layers=[3, 4, 6, 3], num_classes: int = configs.num_class, device : str = configs.device): 
     return ResNet(channels=channels, num_layers=num_layers, num_classes=num_classes).to(device)
