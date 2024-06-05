@@ -9,6 +9,26 @@ from dataset import *
 import optuna
 from tqdm import tqdm
 
+class SEBlock(nn.Module): 
+    def __init__(self, channels, reduction): 
+        super().__init__() 
+        
+        assert channels % reduction, f"[ERROR] Channels is not divisible by reduction."
+
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(channels, channels // reduction, bias = False), 
+            nn.ReLU(),
+            nn.Linear(channels // reduction, channels, bias = False), 
+            nn.Sigmoid()
+        )
+    
+    def forward(self, x): 
+        b, c, _, _ = x.size() 
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1)
+        return x * y.expand_as(x)
+
 class MSA(nn.Module): 
     def __init__(self, d_model : int, head : int):
         assert d_model % head == 0, f"[Error] d_model {d_model} is not divisible by head {head} in MSA Module"
@@ -93,6 +113,8 @@ class EncoderBlock(nn.Module):
 
         self.msa = MSA(d_model=input_dim, head=head)
         self.ffn = FFN(input_dim=input_dim, hidden_dim=hidden_dim, output_dim=outuput_dim)
+        self.se_msa = SEBlock(input_dim, 16)
+        self.se_ffn = SEBlock(outuput_dim, 16)
         self.l_norm_1 = nn.LayerNorm(input_dim)
         self.l_norm_2 = nn.LayerNorm(outuput_dim)
         self.dropout = nn.Dropout(dropout)
@@ -109,11 +131,13 @@ class EncoderBlock(nn.Module):
             torch.Tensor: The output tensor from the encoder block after processing.
         """ 
         x = x + self.l_norm_1(self.msa(x, x, x))
+        x = self.se_msa(x.unsqueeze(2).unsqueeze(3)).squeeze(3).squeeze(2)
         x = x + self.l_norm_2(self.ffn(x))
+        x = self.se_ffn(x.unsqueeze(2).unsqueeze(3)).squeeze(3).squeeze(2)
         return x
 
 class ViT(nn.Module):
-    def __init__(self, input_dim=(3, 320, 320), patch_size=8, layers=12, num_classes=12, d_model = 512, head = 4):
+    def __init__(self, input_dim=(3, 320, 320), patch_size=8, layers=12, num_classes=12, d_model=512, head=4):
         super().__init__()
 
         self.d_model = d_model
@@ -135,9 +159,24 @@ class ViT(nn.Module):
                                                nn.Linear(self.d_model, num_classes),
                                                nn.Dropout(self.dropout)])
 
+        self._initialize_weights()
+
     def init_pos_encod(self):
         n_patches = (self.input_dim[1] // self.patch_size) * (self.input_dim[2] // self.patch_size)
         self.pos_encod = nn.Parameter(data=torch.randn(1, n_patches + 1, self.d_model), requires_grad=True)
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.xavier_normal_(m.weight)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+        nn.init.normal_(self.class_token, mean=0, std=1)
+        nn.init.normal_(self.pos_encod, mean=0, std=1)
 
     def forward(self, x):
         batch_size = x.size(0)
