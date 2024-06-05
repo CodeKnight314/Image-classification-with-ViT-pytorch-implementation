@@ -2,12 +2,36 @@ import torch
 import torch.nn as nn 
 from typing import Union, Tuple
 import math 
-from utils.patches import *
 import configs 
 from loss import *
 from dataset import *
 import optuna
 from tqdm import tqdm
+
+class PatchEmbeddingConv(nn.Module): 
+    def __init__(self, input_channels : int = 3, patch_size : int = 16, d_model : int = 512): 
+        super().__init__()
+
+        self.input_channels = input_channels 
+        self.patch_size = patch_size 
+
+        self.in_conv = nn.Conv2d(in_channels=input_channels, out_channels=d_model, kernel_size=patch_size, stride=patch_size, padding=0)
+        self.flatten = nn.Flatten(start_dim=2, end_dim=3)
+
+    def forward(self, x): 
+        """
+        Forward pass that uses a convolutional layer to extract and flatten image patches.
+
+        Args:
+            x (torch.Tensor): A batch of images, expected shape (N, C, H, W) where
+                              N is the batch size, C is the number of channels, H is the height, and W is the width.
+
+        Returns:
+            torch.Tensor: The output tensor with patches flattened and arranged, shape (N, L, D) where
+                          L is the number of patches and D is the dimension of each patch.
+        """
+        x = self.flatten(self.in_conv(x))
+        return x.permute(0, 2, 1)
 
 class SEBlock(nn.Module): 
     def __init__(self, channels, reduction): 
@@ -231,7 +255,7 @@ def objective_vit(trial):
     for epoch in tqdm(range(10), desc=f'Trial {trial.number+1}: Training', unit='epoch'):
         total_train_loss = 0
         for images, labels in train_loader:
-            images, labels = images.to(device), labels.to(device)
+            images, labels = images.to(configs.device), labels.to(configs.device)
             optimizer.zero_grad()
             outputs = model(images)
             loss = criterion(outputs, labels)
@@ -245,7 +269,7 @@ def objective_vit(trial):
     total_accuracy = 0
     with torch.no_grad():
         for images, labels in tqdm(test_loader, desc=f"Trial {trial.number + 1}: Validation"):
-            images, labels = images.to(device), labels.to(device)
+            images, labels = images.to(configs.device), labels.to(configs.device)
             outputs = model(images)
             loss = criterion(outputs, labels)
             total_val_loss += loss.item()
