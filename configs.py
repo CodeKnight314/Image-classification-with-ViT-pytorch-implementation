@@ -23,7 +23,7 @@ model_save_path = None
 batch_size = 128
 
 warm_up_epochs = 10
-epochs = 100
+epochs = 125
 
 ViT_patches = 4
 ViT_layers = 8
@@ -34,7 +34,9 @@ lr = 1e-4
 
 weight_decay = 1e-4
 
-output_dir = os.path.join(r"C:\Users\richa\Desktop", f"Trial_{count_folders_with_prefix(r"C:\Users\richa\Desktop", "Trial")+1}")
+base_path = r"C:\Users\richa\Desktop"
+prefix = "Trial"
+output_dir = os.path.join(base_path, f'Trial_{count_folders_with_prefix(base_path, prefix)+1}')
 
 log_output_dir = os.path.join(output_dir, "log_outputs")
 
@@ -56,19 +58,19 @@ model = "ResNet18"
 def main(): 
     if not os.path.exists(log_output_dir): 
         os.makedirs(log_output_dir)
-        print("[INFO] Log output dir not found, Creating folder directory.")
+        print("[INFO] Creating Log output directory.")
 
     if not os.path.exists(matrix_output_dir): 
         os.makedirs(matrix_output_dir)
-        print("[INFO] Matrix output dir not found. Creating folder directory.")
+        print("[INFO] Creating Matrix output directory.")
 
     if not os.path.exists(save_pth): 
         os.makedirs(save_pth)
-        print("[INFO] Model Save path not found. Creating folder directory.")
+        print("[INFO] Creating save path directory.")
     
     if not os.path.exists(heatmaps):
         os.makedirs(heatmaps)
-        print("[INFO] Heat map directory not found. Creating folder directory.")
+        print("[INFO] Creating Heat map directory.")
 
 if __name__ == "__main__": 
     main()
