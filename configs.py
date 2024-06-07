@@ -36,7 +36,7 @@ weight_decay = 1e-4
 
 base_path = r"C:\Users\richa\Desktop"
 prefix = "Trial"
-output_dir = os.path.join(base_path, f'Trial_{count_folders_with_prefix(base_path, prefix)+1}')
+output_dir = os.path.join(base_path, f'{prefix}_{count_folders_with_prefix(base_path, prefix)+1}')
 
 log_output_dir = os.path.join(output_dir, "log_outputs")
 
