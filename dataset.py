@@ -9,7 +9,6 @@ import configs
 
 class ImgClsDataset(Dataset):
     def __init__(self, root_dir, img_height, img_width, mode, transforms = None):
-        
         self.data_dir = os.path.join(root_dir, mode)
         
         self.img_height = img_height 
