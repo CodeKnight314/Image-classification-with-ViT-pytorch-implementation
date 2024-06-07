@@ -10,7 +10,7 @@ class PatchEmbedding(nn.Module):
         super().__init__()
         self.patch_size = patch_size
 
-    def forward(self, x):
+    def forward(self, x : torch.Tensor) -> torch.Tensor:
         """
         Forward pass for splitting images into patches and flattening them.
 
@@ -23,8 +23,7 @@ class PatchEmbedding(nn.Module):
                           L is the total number of patches and D is the dimension of each flattened patch.
         """
         N, C, H, W = x.shape
-        assert H % self.patch_size == 0 and W % self.patch_size == 0, \
-            "[ERROR] Image's Height or Width is not divisible by the patch size"
+        assert H % self.patch_size == 0 and W % self.patch_size == 0, "[ERROR] Image's Height or Width is not divisible by the patch size"
         
         x = x.view(N, C, H // self.patch_size, self.patch_size, W // self.patch_size, self.patch_size)
         
@@ -46,7 +45,7 @@ class PatchEmbeddingConv(nn.Module):
         self.in_conv = nn.Conv2d(in_channels=input_channels, out_channels=d_model, kernel_size=patch_size, stride=patch_size, padding=0)
         self.flatten = nn.Flatten(start_dim=2, end_dim=3)
 
-    def forward(self, x): 
+    def forward(self, x : torch.Tensor) -> torch.Tensor: 
         """
         Forward pass that uses a convolutional layer to extract and flatten image patches.
 
