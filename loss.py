@@ -8,7 +8,7 @@ class CrossEntropyLoss(nn.Module):
     def __init__(self):
         super().__init__() 
     
-    def forward(self, logits: torch.Tensor, labels: torch.Tensor):
+    def forward(self, logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
         """
         Calculates the cross-entropy loss between logits and true labels.
 
@@ -17,7 +17,7 @@ class CrossEntropyLoss(nn.Module):
             labels (torch.Tensor): The true labels, expected to be class indices.
 
         Returns:
-            float: The calculated loss value, averaged over the batch.
+            torch.Tensor: The calculated loss value, averaged over the batch.
         """
         probs = F.log_softmax(logits, dim=-1)
         loss = -(probs[range(logits.shape[0]), labels] + 1e-9)
@@ -27,7 +27,7 @@ class BCELoss(nn.Module):
     def __init__(self): 
         super().__init__()
 
-    def forward(self, logits : torch.Tensor, labels : torch.Tensor): 
+    def forward(self, logits : torch.Tensor, labels : torch.Tensor) -> torch.Tensor: 
         """
         Calculates the binary cross-entropy loss between logits and true labels.
 
@@ -36,7 +36,7 @@ class BCELoss(nn.Module):
             labels (torch.Tensor): The true labels, expected to have the same shape as logits.
 
         Returns:
-            float: The calculated loss value, averaged over all elements in the batch.
+            torch.Tensor: The calculated loss value, averaged over all elements in the batch.
         """
         probs = torch.sigmoid(logits)
         probs_log = torch.log(probs + 1e-9)
@@ -63,7 +63,10 @@ class HingeLoss(nn.Module):
         loss = (1 - labels * probs).sum(dim=-1).mean().item()
         return max(0, loss)
 
-def get_SGD_optimizer(model, lr : float, momentum : Tuple[float], weight_decay : float): 
+def get_SGD_optimizer(model, 
+                      lr : float, 
+                      momentum : Tuple[float], 
+                      weight_decay : float) -> torch.optim: 
     """
     Helper function for defining optimizer 
 
@@ -76,7 +79,9 @@ def get_SGD_optimizer(model, lr : float, momentum : Tuple[float], weight_decay :
     """
     return opt.SGD(model.parameters(), lr=lr, momentum=momentum, weight_decay=weight_decay)
 
-def get_AdamW_optimizer(model, lr : float = 5e-4, weight_decay : float = 1e-3): 
+def get_AdamW_optimizer(model, 
+                        lr : float = 5e-4, 
+                        weight_decay : float = 1e-3) -> torch.optim: 
     """
     Helper function for defining AdamW optimizer 
 
@@ -89,7 +94,16 @@ def get_AdamW_optimizer(model, lr : float = 5e-4, weight_decay : float = 1e-3):
     """
     return opt.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
 
-def get_scheduler(optimizer: torch.optim.Optimizer, mode: str = 'min', factor: float = 0.1, patience: int = 10, verbose: bool = False, threshold: float = 0.02, threshold_mode: str = 'rel', cooldown: int = 0, min_lr: float = 1e-6, eps: float = 1e-8):
+def get_scheduler(optimizer: torch.optim.Optimizer, 
+                  mode: str = 'min', 
+                  factor: float = 0.1, 
+                  patience: int = 10, 
+                  verbose: bool = False, 
+                  threshold: float = 0.02, 
+                  threshold_mode: str = 'rel', 
+                  cooldown: int = 0,
+                  min_lr: float = 1e-6, 
+                  eps: float = 1e-8) -> torch.optim.lr_scheduler:
     """
     Helper function for defining a ReduceLROnPlateau learning rate scheduler.
 
