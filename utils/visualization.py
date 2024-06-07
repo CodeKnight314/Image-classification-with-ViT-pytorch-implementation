@@ -12,7 +12,11 @@ import configs
 from collections import Counter
 
 
-def add_gaussian_noise(image_path : str, mean : int, std : int, output_directory : Union[str, None], show : bool = False): 
+def add_gaussian_noise(image_path : str, 
+                       mean : int, 
+                       std : int, 
+                       output_directory : Union[str, None], 
+                       show : bool = False) -> None: 
     """
     Adds Gaussian Noise to a given image with a specified mean and standardeviation 
 
@@ -43,7 +47,11 @@ def add_gaussian_noise(image_path : str, mean : int, std : int, output_directory
 
     return image
 
-def add_uniform_noise(image_path : str, output_directory : Union[str, None], lower_bound : int, upper_bound : int, show : bool = False):
+def add_uniform_noise(image_path : str, 
+                      output_directory : Union[str, None], 
+                      lower_bound : int, 
+                      upper_bound : int, 
+                      show : bool = False) -> None:
     """
     Adds Uniform Noise to a given image with a specified lower and upper bound. 
 
@@ -72,7 +80,11 @@ def add_uniform_noise(image_path : str, output_directory : Union[str, None], low
 
     return image
 
-def add_impulse_noise(image_path : str, output_directory : Union[str, None], lower_bound : int, upper_bound : int, show : bool = False):
+def add_impulse_noise(image_path : str, 
+                      output_directory : Union[str, None], 
+                      lower_bound : int, 
+                      upper_bound : int, 
+                      show : bool = False) -> None:
     """
     Adds Impulse Noise (Pepper Noise) to a given image.
     
@@ -104,7 +116,9 @@ def add_impulse_noise(image_path : str, output_directory : Union[str, None], low
 
     return image
 
-def batch_noise(root_dir : str, output_dir : Union[str, None], show : bool = False, mode : str = "gaussian", **kwargs):
+def batch_noise(root_dir : str, 
+                output_dir : Union[str, None], 
+                mode : str = "gaussian", **kwargs) -> None:
     """
     Applies noise to all images in a specified directory and saves the modified images to an output directory. 
     The function supports different types of noise such as Gaussian, uniform, and impulse.
@@ -112,7 +126,6 @@ def batch_noise(root_dir : str, output_dir : Union[str, None], show : bool = Fal
     Args:
         root_dir (str): The directory containing the images to process.
         output_dir (Union[str, None]): The directory where the noised images will be saved. If None, images are not saved.
-        show (bool): If True, displays the noised image. Defaults to False.
         mode (str): The type of noise to apply. Options include 'gaussian', 'uniform', or 'impulse'.
         **kwargs: Keyword arguments specific to the type of noise:
             For 'gaussian':
@@ -147,7 +160,9 @@ def batch_noise(root_dir : str, output_dir : Union[str, None], show : bool = Fal
     else: 
         raise ValueError(f"[Error] Invalid mode. {mode} is not available as a noise mode.")
 
-def confusion_matrix(predictions: torch.Tensor, labels: torch.Tensor, num_class: int):
+def confusion_matrix(predictions: torch.Tensor, 
+                     labels: torch.Tensor, 
+                     num_class: int) -> torch.Tensor:
     """
     Computes the confusion matrix from predictions and labels.
 
@@ -167,7 +182,9 @@ def confusion_matrix(predictions: torch.Tensor, labels: torch.Tensor, num_class:
 
     return conf_matrix 
 
-def plot_confusion_matrix(confusion_matrix : torch.Tensor, num_classes : int, save_pth : Union[str, None]):
+def plot_confusion_matrix(confusion_matrix : torch.Tensor, 
+                          num_classes : int, 
+                          save_pth : Union[str, None]) -> None:
     """
     Computes and plots a confusion matrix.
     
@@ -192,7 +209,7 @@ def plot_confusion_matrix(confusion_matrix : torch.Tensor, num_classes : int, sa
 
     plt.close()
 
-def count_labels(directory):
+def count_labels(directory : str) -> dict:
     """
     Counts the number of images in each label directory within the given parent directory.
     
@@ -212,8 +229,18 @@ def count_labels(directory):
     
     return dict(label_counts)
 
-def plot_data(output_log, output_directory, save_fig, show_fig): 
-    """
+def plot_data(output_log : str, 
+              output_directory : str, 
+              save_fig : bool, 
+              show_fig : bool) -> None: 
+    """"
+    Plots training and validation loss as well as accuracy over epochs from a log file.
+
+    Parameters:
+    output_log (str): Path to the log file containing training and validation metrics.
+    output_directory (str): Directory where the plots will be saved if save_fig is True.
+    save_fig (bool): If True, the plots will be saved to the specified directory.
+    show_fig (bool): If True, the plots will be displayed.
     """
     file = open(output_log, 'r').split("\n")
 
