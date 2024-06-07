@@ -28,7 +28,7 @@ class ResBlock(nn.Module):
         
         self.relu = nn.ReLU()
 
-    def forward(self, x):
+    def forward(self, x : torch.Tensor) -> torch.Tensor:
         identity = self.projection(x)
         
         out = self.relu(self.ba_n1(self.conv1(x)))
@@ -50,7 +50,7 @@ class ResStack(nn.Module):
             layers.append(ResBlock(input_channels=output_channels, output_channels=output_channels, stride=1))
         self.block = nn.Sequential(*layers)
 
-    def forward(self, x): 
+    def forward(self, x : torch.Tensor) -> torch.Tensor: 
         return self.block(x)
 
 class ResNet(nn.Module): 
@@ -79,7 +79,7 @@ class ResNet(nn.Module):
                                             nn.Linear(channels[-1], num_classes), 
                                             nn.Dropout(0.1))
 
-    def forward(self, x): 
+    def forward(self, x : torch.Tensor) -> torch.Tensor: 
         first_conv = self.input_conv(x)
         block_conv = self.blocks(first_conv)
         logits = self.classifier_head(block_conv)
@@ -106,7 +106,9 @@ def get_ResNet34(num_classes: int = configs.num_class, device : str = configs.de
 
 def objective_resnet(trial):
     """
-    Hyperparameter tuning of ResNet18 for Image classification
+    Hyperparameter tuning of ResNet18 for Image classification for the following parameters: 
+        * lr
+        * weight decay
     """
     channels = [64, 128, 256, 512]
     num_layers = [2, 2, 2, 2]
