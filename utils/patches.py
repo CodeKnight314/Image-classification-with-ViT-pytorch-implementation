@@ -61,6 +61,9 @@ class PatchEmbeddingConv(nn.Module):
         return x.permute(0, 2, 1)
 
 def main(): 
+    """
+    Patch Embedding testing for both methods
+    """
     p_embed = PatchEmbedding(16)
     arr = []
     for i in range(1, 9): 
