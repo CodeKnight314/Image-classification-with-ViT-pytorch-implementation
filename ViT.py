@@ -183,10 +183,16 @@ class ViT(nn.Module):
         self._initialize_weights()
 
     def init_pos_encod(self):
+        """
+        Initializes position encoding for the encoder stack.
+        """
         n_patches = (self.input_dim[1] // self.patch_size) * (self.input_dim[2] // self.patch_size)
         self.pos_encod = nn.Parameter(data=torch.randn(1, n_patches + 1, self.d_model), requires_grad=True)
 
     def _initialize_weights(self):
+        """
+        Initializes weights for Conv2d, Linear, class tokens and positional encoding.
+        """
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, nonlinearity='relu')
@@ -199,7 +205,7 @@ class ViT(nn.Module):
         nn.init.normal_(self.class_token, mean=0, std=1)
         nn.init.normal_(self.pos_encod, mean=0, std=1)
 
-    def forward(self, x):
+    def forward(self, x : torch.Tensor) -> torch.Tensor:
         batch_size = x.size(0)
         patched_image = self.patch_embed(x)
         class_tokens = self.class_token.expand(batch_size, -1, -1)
@@ -214,11 +220,26 @@ def get_ViT(input_dim: Tuple[int] = (3, configs.img_height, configs.img_width),
             layers: int = configs.ViT_layers, 
             d_model : int = configs.ViT_d_model, 
             head : int = configs.ViT_head,
-            num_classes = configs.num_class, device: str = configs.device):
+            num_classes = configs.num_class, device: str = configs.device) -> ViT:
+    """
+    Helper function for getting VIT with configured parameters.
+
+    Returns: 
+        ViT: ViT model with configured parameters
+    """
     
     return ViT(input_dim=input_dim, patch_size=patch_size, layers=layers, d_model=d_model, head=head, num_classes=num_classes).to(device)
 
 def objective_vit(trial):
+    """
+    Optuna hyperparameter tuning for ViT with the following parameters: 
+        * patch_size
+        * layers 
+        * heads
+        * d_model
+        * lr 
+        * weight decay
+    """
     img_height = configs.img_height
     img_width = configs.img_width
     
@@ -233,7 +254,6 @@ def objective_vit(trial):
 
     head = trial.suggest_categorical('heads', [2, 4, 8])
 
-    # Define categorical options for learning rate and weight decay as multiples of 1e-1 to 1e-5
     lr_options = [1e-2, 5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5]
     weight_decay_options = [5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-6]
 
