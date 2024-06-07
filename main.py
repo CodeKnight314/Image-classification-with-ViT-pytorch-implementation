@@ -9,7 +9,15 @@ from torch.nn import functional as F
 
 torch.autograd.set_detect_anomaly(True)
 
-def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, loss_fn, epochs, device='cuda', num_classes=10):
+def train_and_evaluate(model, 
+                       optimizer : torch.optim, 
+                       scheduler : torch.optim.lr_scheduler, 
+                       train_dl : DataLoader, 
+                       valid_dl : DataLoader, 
+                       logger : LOGWRITER, 
+                       loss_fn : CrossEntropyLoss, 
+                       epochs : int, 
+                       device='cuda'):
     """
     Conducts training and validation of a Vision Transformer model over a specified number of epochs, logs the 
     performance metrics, and saves the best model based on validation loss.
@@ -24,7 +32,6 @@ def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, 
         loss_fn (CrossEntropyLoss): The loss function used for training the model.
         epochs (int): The total number of epochs to train the model.
         device (str): The computation device ('cuda' or 'cpu').
-        num_classes (int): The number of classes in the output layer of the model.
     """
     best_loss = float('inf')
     model.to(device)
