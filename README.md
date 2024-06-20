@@ -8,5 +8,6 @@ If you have any suggestions, feel free to email me: richardgtang@gmail.com
 ## Results
 ###MNIST
 | Model | Accuracy |
-| ViT   | 94.3%|
-| ResNet| 98.3%|
+|-------|----------|
+| ViT   | 94.3%    |
+| ResNet| 98.3%    |
