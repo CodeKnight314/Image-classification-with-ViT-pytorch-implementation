@@ -76,6 +76,7 @@ def main():
     parser = argparse.ArgumentParser(description='Train a model on CIFAR-10')
     parser.add_argument('--epochs', type=int, default=90, help='Number of epochs to train')
     parser.add_argument('--model', type=str, required=True, choices=['ViT', 'ResNet18', 'ResNet34'], help='Model name')
+    parser.add_argument('--patch_size', type=int, help="ViT Patch Size")
     parser.add_argument('--model_save_path', type=str, help='Path to save or load model weights')
     parser.add_argument('--lr', type=float, default=1e-4, help='Learning rate')
     parser.add_argument('--optimizer', type=str, default='AdamW', choices=['AdamW', 'SGD'], help='Optimizer to use')
