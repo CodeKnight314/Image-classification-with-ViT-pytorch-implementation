@@ -34,7 +34,7 @@ lr = 1e-4
 
 weight_decay = 1e-4
 
-base_path = r"C:\Users\richa\Desktop"
+base_path = os.getcwd()
 prefix = "Trial"
 output_dir = os.path.join(base_path, f'{prefix}_{count_folders_with_prefix(base_path, prefix)+1}')
 
@@ -71,7 +71,4 @@ def main():
     if not os.path.exists(heatmaps):
         os.makedirs(heatmaps)
         print("[INFO] Creating Heat map directory.")
-
-if __name__ == "__main__": 
-    main()
     
