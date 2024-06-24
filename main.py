@@ -136,6 +136,8 @@ def main():
     print(f"[INFO] Total epochs: {args.epochs}")
     print(f"[INFO] Warm Up Phase: {configs.warm_up_epochs} epochs")
 
+    configs.main()
+
     train_and_evaluate(model=model, 
                        optimizer=optimizer, 
                        scheduler=scheduler, 
