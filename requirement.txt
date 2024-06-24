@@ -1,0 +1,1 @@
+pip install torch-snippets torchsummary optuna seaborn kaggle

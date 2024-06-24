@@ -89,8 +89,8 @@ def main():
 
     args = parser.parse_args()
 
-    train_dl = load_dataset(mode="train")
-    valid_dl = load_dataset(mode="test")
+    train_dl = load_dataset(root_dir=args.root_dir, mode="train")
+    valid_dl = load_dataset(root_dir=args.root_dir, mode="test")
     print(f"[INFO] Training Dataloader loaded with {len(train_dl)} batches.")
     print(f"[INFO] Validation Dataloader loaded with {len(valid_dl)} batches.")
 
@@ -98,7 +98,7 @@ def main():
     print("[INFO] Cross Entropy Function loaded.")
 
     if args.model == "ViT":
-        model = get_ViT(num_classes=configs.num_class)
+        model = get_ViT(patch_size=args.patch_size, num_classes=configs.num_class)
         print("[INFO] ViT Model loaded with the following attributes:")
         print(f"[INFO] * Patch size: {model.patch_size}.")
         print(f"[INFO] * Number of layers: {model.layers}.")
