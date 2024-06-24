@@ -1,5 +1,5 @@
-from ViT import *
-from ResNet import *
+from models.ViT import *
+from models.ResNet import *
 from dataset import * 
 from loss import * 
 from utils.visualization import plot_confusion_matrix, confusion_matrix
