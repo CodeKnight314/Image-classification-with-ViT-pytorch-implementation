@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 import os
 import configs
+from sklearn.metrics import precision_score, recall_score, accuracy_score
 
 def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, loss_fn, epochs, device='cuda'):
     best_loss = float('inf')
@@ -30,9 +31,8 @@ def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, 
 
         model.eval()
         total_val_loss = 0
-        total_precision = 0
-        total_recall = 0
-        total_accuracy = 0
+        all_labels = []
+        all_preds = []
         
         with torch.no_grad():
             for images, labels in tqdm(valid_dl, desc=f"Validating Epoch {epoch+1}/{epochs}"):
@@ -41,25 +41,26 @@ def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, 
                 loss = loss_fn(outputs, labels)
                 total_val_loss += loss.item()
                 _, preds = torch.max(outputs, 1)
-                total_precision += (preds == labels).sum().item() / preds.size(0)
-                total_recall += (preds == labels).sum().item() / preds.size(0)
-                total_accuracy += (preds == labels).sum().item() / preds.size(0)
+                
+                all_labels.extend(labels.cpu().numpy())
+                all_preds.extend(preds.cpu().numpy())
 
-            images, labels = next(iter(valid_dl))
-            images, labels = images.to(device), labels.to(device)
-            outputs = model(images)
-            
-            probabilities = torch.nn.functional.softmax(outputs, dim=-1)
-            predictions = torch.argmax(probabilities, dim=-1)
-            
-            cm = confusion_matrix(predictions=predictions, labels=labels, num_class=configs.num_class)
-            plot_confusion_matrix(cm, configs.num_class, os.path.join(configs.matrix_output_dir, f"CONF_Matrix_{epoch+1}.png"))
-
+        precision = precision_score(all_labels, all_preds, average='macro')
+        recall = recall_score(all_labels, all_preds, average='macro')
+        accuracy = accuracy_score(all_labels, all_preds)
+        
         avg_train_loss = total_train_loss / len(train_dl)
         avg_val_loss = total_val_loss / len(valid_dl)
-        avg_precision = total_precision / len(valid_dl)
-        avg_recall = total_recall / len(valid_dl)
-        avg_accuracy = total_accuracy / len(valid_dl)
+
+        images, labels = next(iter(valid_dl))
+        images, labels = images.to(device), labels.to(device)
+        outputs = model(images)
+        
+        probabilities = torch.nn.functional.softmax(outputs, dim=-1)
+        predictions = torch.argmax(probabilities, dim=-1)
+        
+        cm = confusion_matrix(predictions=predictions, labels=labels, num_class=configs.num_class)
+        plot_confusion_matrix(cm, configs.num_class, os.path.join(configs.matrix_output_dir, f"CONF_Matrix_{epoch+1}.png"))
 
         if avg_val_loss < best_loss:
             best_loss = avg_val_loss
@@ -67,7 +68,7 @@ def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, 
             torch.save(model.state_dict(), save_path)
 
         logger.write(epoch=epoch+1, tr_loss=avg_train_loss, val_loss=avg_val_loss,
-                     precision=avg_precision, recall=avg_recall, accuracy=avg_accuracy)
+                     precision=precision, recall=recall, accuracy=accuracy)
 
         if epoch > configs.warm_up_epochs:
             scheduler.step()
