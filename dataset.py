@@ -49,9 +49,9 @@ class ImgClsDataset(Dataset):
     def __len__(self):
         return len(self.images)
     
-def load_dataset(img_height = configs.img_height, img_width = configs.img_width, batch_size = configs.batch_size, shuffle = True, mode = "train"): 
+def load_dataset(root_dir=configs.root_dir, img_height = configs.img_height, img_width = configs.img_width, batch_size = configs.batch_size, shuffle = True, mode = "train"): 
     assert mode in ["train", "val", "test"], "[ERROR] Invalid dataset mode"
-    ds = ImgClsDataset(configs.root_dir, img_height, img_width, mode = mode, transforms = configs.transforms)
+    ds = ImgClsDataset(root_dir, img_height, img_width, mode = mode, transforms = configs.transforms)
     configs.num_class = len(ds.id_to_class_dict)
     configs.id_to_category_dict = ds.id_to_class_dict
     configs.category_to_id_dict = ds.class_to_id_dict

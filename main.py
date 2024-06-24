@@ -78,6 +78,7 @@ def main():
     parser.add_argument('--model', type=str, required=True, choices=['ViT', 'ResNet18', 'ResNet34'], help='Model name')
     parser.add_argument('--patch_size', type=int, help="ViT Patch Size")
     parser.add_argument('--model_save_path', type=str, help='Path to save or load model weights')
+    parser.add_argument('--root_dir', type=str, required=True, help="Root directory to Dataset. Must contain a train and test folder in root directory.")
     parser.add_argument('--lr', type=float, default=1e-4, help='Learning rate')
     parser.add_argument('--optimizer', type=str, default='AdamW', choices=['AdamW', 'SGD'], help='Optimizer to use')
     parser.add_argument('--scheduler', type=str, default='CosineAnnealingLR', choices=['CosineAnnealingLR', 'StepLR'], help='Learning rate scheduler')
