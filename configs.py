@@ -13,8 +13,8 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 root_dir = r"C:\Users\richa\Desktop\cifar10\cifar10"
 
-img_height = 32
-img_width = 32
+img_height = 256
+img_width = 256
 
 transforms = None
 
@@ -26,9 +26,9 @@ warm_up_epochs = 10
 epochs = 125
 
 ViT_patches = 4
-ViT_layers = 8
-ViT_d_model = 512 
-ViT_head = 4
+ViT_layers = 12
+ViT_d_model = 512
+ViT_head = 8
 
 lr = 1e-4
 
@@ -71,4 +71,3 @@ def main():
     if not os.path.exists(heatmaps):
         os.makedirs(heatmaps)
         print("[INFO] Creating Heat map directory.")
-    
