@@ -3,11 +3,9 @@ from models.ViT import get_ViT
 from models.ResNet import get_ResNet18, get_ResNet34
 from dataset import load_dataset
 from loss import CrossEntropyLoss
-from utils.visualization import plot_confusion_matrix, confusion_matrix
 from utils.log_writer import LOGWRITER
 import torch
 import torch.optim as opt
-from torch.utils.data import DataLoader
 from tqdm import tqdm
 import os
 import configs
@@ -15,7 +13,7 @@ import numpy as np
 from collections import Counter
 from sklearn.metrics import precision_score, recall_score, accuracy_score
 
-def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, loss_fn, epochs, device='cuda'):
+def classification(model, optimizer, scheduler, train_dl, valid_dl, logger, loss_fn, epochs, device='cuda'):
     best_loss = float('inf')
     model.to(device)
 
@@ -65,16 +63,6 @@ def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, 
         
         avg_train_loss = total_train_loss / len(train_dl)
         avg_val_loss = total_val_loss / len(valid_dl)
-
-        images, labels = next(iter(valid_dl))
-        images, labels = images.to(device), labels.to(device)
-        outputs = model(images)
-        
-        probabilities = torch.nn.functional.softmax(outputs, dim=-1)
-        predictions = torch.argmax(probabilities, dim=-1)
-        
-        cm = confusion_matrix(predictions=predictions, labels=labels, num_class=configs.num_class)
-        plot_confusion_matrix(cm, configs.num_class, os.path.join(configs.matrix_output_dir, f"CONF_Matrix_{epoch+1}.png"))
 
         if avg_val_loss < best_loss:
             best_loss = avg_val_loss
@@ -152,9 +140,9 @@ def main():
     print(f"[INFO] Total epochs: {args.epochs}")
     print(f"[INFO] Warm Up Phase: {configs.warm_up_epochs} epochs")
 
-    configs.main()
+    configs.trial_directory()
 
-    train_and_evaluate(model=model, 
+    classification(model=model, 
                        optimizer=optimizer, 
                        scheduler=scheduler, 
                        train_dl=train_dl, 
