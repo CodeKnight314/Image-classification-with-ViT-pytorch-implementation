@@ -25,7 +25,6 @@ batch_size = 128
 warm_up_epochs = 10
 epochs = 125
 
-ViT_patches = 4
 ViT_layers = 12
 ViT_d_model = 512
 ViT_head = 8
@@ -40,11 +39,7 @@ output_dir = os.path.join(base_path, f'{prefix}_{count_folders_with_prefix(base_
 
 log_output_dir = os.path.join(output_dir, "log_outputs")
 
-matrix_output_dir = os.path.join(output_dir, "conf_matrices")
-
 save_pth = os.path.join(output_dir, "saved_weights")
-
-heatmaps = os.path.join(output_dir, "heatmaps")
 
 num_class = None
 
@@ -55,19 +50,11 @@ category_to_id_dict = None
 #Available Options: ViT, ResNet18, ResNet34
 model = "ResNet18"
 
-def main(): 
+def trial_directory(): 
     if not os.path.exists(log_output_dir): 
         os.makedirs(log_output_dir)
         print("[INFO] Creating Log output directory.")
 
-    if not os.path.exists(matrix_output_dir): 
-        os.makedirs(matrix_output_dir)
-        print("[INFO] Creating Matrix output directory.")
-
     if not os.path.exists(save_pth): 
         os.makedirs(save_pth)
         print("[INFO] Creating save path directory.")
-    
-    if not os.path.exists(heatmaps):
-        os.makedirs(heatmaps)
-        print("[INFO] Creating Heat map directory.")
