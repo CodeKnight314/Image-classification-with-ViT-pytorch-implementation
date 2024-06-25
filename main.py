@@ -11,6 +11,8 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 import os
 import configs
+import numpy as np
+from collections import Counter
 from sklearn.metrics import precision_score, recall_score, accuracy_score
 
 def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, loss_fn, epochs, device='cuda'):
@@ -44,9 +46,21 @@ def train_and_evaluate(model, optimizer, scheduler, train_dl, valid_dl, logger, 
                 
                 all_labels.extend(labels.cpu().numpy())
                 all_preds.extend(preds.cpu().numpy())
-
-        precision = precision_score(all_labels, all_preds, average='macro')
-        recall = recall_score(all_labels, all_preds, average='macro')
+        
+        all_labels = np.array(all_labels)
+        all_preds = np.array(all_preds)
+        
+        pred_counter = Counter(all_preds)
+        
+        num_classes = len(valid_dl.dataset.id_to_class_dict)
+        
+        no_preds_classes = [cls for cls in range(num_classes) if pred_counter[cls] == 0]
+        if no_preds_classes:
+            no_preds_class_names = [valid_dl.dataset.id_to_class_dict[cls] for cls in no_preds_classes]
+            print(f"[INFO] Classes with no predicted samples: {no_preds_class_names}")
+        
+        precision = precision_score(all_labels, all_preds, average='macro', zero_division=0)
+        recall = recall_score(all_labels, all_preds, average='macro', zero_division=0)
         accuracy = accuracy_score(all_labels, all_preds)
         
         avg_train_loss = total_train_loss / len(train_dl)
@@ -91,9 +105,10 @@ def main():
     args = parser.parse_args()
 
     train_dl = load_dataset(root_dir=args.root_dir, mode="train")
-    valid_dl = load_dataset(root_dir=args.root_dir, mode="test")
+    valid_dl = load_dataset(root_dir=args.root_dir, mode="val")
     print(f"[INFO] Training Dataloader loaded with {len(train_dl)} batches.")
     print(f"[INFO] Validation Dataloader loaded with {len(valid_dl)} batches.")
+    print(f"[INFO] Total number of classes: {configs.num_class}")
 
     loss_fn = CrossEntropyLoss()
     print("[INFO] Cross Entropy Function loaded.")
