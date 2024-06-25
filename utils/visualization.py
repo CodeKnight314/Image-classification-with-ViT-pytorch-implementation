@@ -7,10 +7,9 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 import torch 
-import matplotlib.patches as patches
 import configs
 from collections import Counter
-
+import math
 
 def add_gaussian_noise(image_path : str, 
                        mean : int, 
@@ -286,5 +285,43 @@ def plot_data(output_log : str,
 
     plt.close()
 
+def heatmap_generation(input_tensor : torch.Tensor, attn_weights : torch.Tensor, patch_size : int, output_filename : Union[str, None], save_fig : bool, show_fig : bool): 
+    """
+    Generates the heatmap for a given input tensor based on the attention weights provided. 
+
+    Args: 
+        input_tensor (torch.Tensor): Image tensor to generate heatmap for with dimensiosn (C, H, W).
+        att_weights (torch.Tensor): Attention weights provided to generate heatmap with dimensions (num_of_heads, num_patches, num_patches)
+        patch_size (int): Patch size used for classification inference.
+        output_filename (Union[str, None]): Output filename that includes the directory address and filename to save figure to.
+        save_fig (bool): Flag to enable saving figure to specified the designated address and filename
+        show_fig (bool): Flag to enable showing figure for given image and attention weights.
+    """
+    attn_weights = attn_weights.mean(dim=0).cpu().detach().numpy()
+    num_patches = attn_weights.shape[-1]
+
+    img = input_tensor.cpu().detach().numpy()
+    img_h, img_w = img.shape[-1], img.shape[-2]
+
+    patch_h, patch_w = img_h // patch_size, img_w // patch_size
+
+    fig, ax = plt.subplots()
+    heatmap = np.zeros((img_h, img_w))
+    for i in range(num_patches):
+        row_index = i // patch_w
+        col_index = i // patch_w
+        patch = attn_weights[:, i].reshape((patch_size, patch_size))
+        heatmap[row_index * patch_size:(row_index+1)*patch_size, col_index*patch_size:(col_index+1)*patch_size] = patch
+
+    ax.imshow(img.permute(1, 2, 0).cpu().detach().numpy())
+    ax.imshow(heatmap, cmap='viridis', alpha=0.6)
+
+    if save_fig:
+        fig.savefig(output_filename)
+
+    if show_fig:
+        plt.show()
+
+    plt.close()
     
 
