@@ -124,7 +124,7 @@ def main():
         model.load_state_dict(torch.load(args.model_save_path))
     
     if args.optimizer == 'AdamW':
-        optimizer = opt.AdamW(model.parameters(), lr=args.lr)
+        optimizer = opt.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
     elif args.optimizer == 'SGD':
         optimizer = opt.SGD(model.parameters(), lr=args.lr, momentum=0.9)
     print(f"[INFO] Optimizer loaded with learning rate: {args.lr}.")

@@ -11,7 +11,7 @@ def count_folders_with_prefix(directory, prefix):
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-root_dir = r"C:\Users\richa\Desktop\cifar10\cifar10"
+root_dir = None
 
 img_height = 256
 img_width = 256
@@ -26,8 +26,8 @@ warm_up_epochs = 10
 epochs = 125
 
 ViT_layers = 12
-ViT_d_model = 512
-ViT_head = 8
+ViT_d_model = 768
+ViT_head = 12
 
 lr = 1e-4
 

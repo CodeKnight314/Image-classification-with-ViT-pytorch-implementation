@@ -18,9 +18,10 @@ class ImgClsDataset(Dataset):
             self.transforms = transforms 
         else: 
             if mode == "train":
-                self.transforms = T.Compose([T.Resize((self.img_height, self.img_width), T.InterpolationMode.BICUBIC),
-                                            T.RandomHorizontalFlip(0.25), 
-                                            T.RandomVerticalFlip(0.25), 
+                self.transforms = T.Compose([T.RandomResizedCrop((configs.img_height, configs.img_width)),
+                                            T.RandomHorizontalFlip(0.5), 
+                                            T.RandomVerticalFlip(0.5), 
+                                            T.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.2),
                                             T.ToTensor(),
                                             T.Normalize((0.49139968, 0.48215841, 0.44653091),(0.24703223, 0.24348513,0.26158784))])
             elif mode == "test" or mode == "val":
