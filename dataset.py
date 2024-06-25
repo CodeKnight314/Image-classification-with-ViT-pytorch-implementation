@@ -19,13 +19,11 @@ class ImgClsDataset(Dataset):
         else: 
             if mode == "train":
                 self.transforms = T.Compose([T.Resize((self.img_height, self.img_width), T.InterpolationMode.BICUBIC),
-                                            T.RandomCrop(32, padding=4),
-                                            T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
                                             T.RandomHorizontalFlip(0.25), 
                                             T.RandomVerticalFlip(0.25), 
                                             T.ToTensor(),
                                             T.Normalize((0.49139968, 0.48215841, 0.44653091),(0.24703223, 0.24348513,0.26158784))])
-            elif mode == "test":
+            elif mode == "test" or mode == "val":
                 self.transforms = T.Compose([T.Resize((self.img_height, self.img_width), T.InterpolationMode.BICUBIC),
                                             T.ToTensor(),
                                             T.Normalize((0.49139968, 0.48215841, 0.44653091),(0.24703223, 0.24348513,0.26158784))])
@@ -33,13 +31,15 @@ class ImgClsDataset(Dataset):
         self.class_to_id_dict = {}
         self.images = []
 
-        for i, cls in enumerate(os.listdir(self.data_dir)): 
-            self.id_to_class_dict[i] = cls 
-            self.class_to_id_dict[cls] = i
+        self.valid_dir = [cls for cls in os.listdir(self.data_dir) if os.path.isdir(os.path.join(self.data_dir, cls)) and not cls.startswith('.')]
 
-            if os.path.isdir(os.path.join(self.data_dir, cls)):
-                for image in glob(os.path.join(self.data_dir, cls) + "/*"):
-                    self.images.append((image, i))
+        for i, cls in enumerate(self.valid_dir):
+            cls_path = os.path.join(self.data_dir, cls)
+            self.id_to_class_dict[i] = cls
+            self.class_to_id_dict[cls] = i
+        
+            for image in glob(os.path.join(cls_path, "*")):
+                self.images.append((image, i))
 
     def __getitem__(self, index):
         img_path, img_id = self.images[index]
