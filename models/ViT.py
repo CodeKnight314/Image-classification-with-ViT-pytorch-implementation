@@ -9,13 +9,19 @@ import optuna
 from tqdm import tqdm
 
 class PatchEmbeddingConv(nn.Module):
-    def __init__(self, input_channels : int = 3, patch_size : int = 16, d_model : int = 512):
+    def __init__(self, input_channels: int = 3, patch_size: int = 8, d_model: int = 512):
         super().__init__()
 
         self.input_channels = input_channels
         self.patch_size = patch_size
 
-        self.in_conv = nn.Conv2d(in_channels=input_channels, out_channels=d_model, kernel_size=patch_size, stride=patch_size, padding=0)
+        self.in_conv = nn.Conv2d(
+            in_channels=input_channels,
+            out_channels=d_model,
+            kernel_size=patch_size,
+            stride=patch_size,
+            padding=0
+        )
         self.flatten = nn.Flatten(start_dim=2, end_dim=3)
 
     def forward(self, x):
@@ -30,8 +36,10 @@ class PatchEmbeddingConv(nn.Module):
             torch.Tensor: The output tensor with patches flattened and arranged, shape (N, L, D) where
                           L is the number of patches and D is the dimension of each patch.
         """
-        x = self.flatten(self.in_conv(x))
-        return x.permute(0, 2, 1)
+        x = self.in_conv(x)
+        x = self.flatten(x)
+        x = x.permute(0, 2, 1)
+        return x
 
 class SEBlock(nn.Module): 
     def __init__(self, channel, reduction=16):
@@ -108,17 +116,18 @@ class MSA(nn.Module):
         return context
 
 class FFN(nn.Module):
-    def __init__(self, input_dim : int, hidden_dim : int, output_dim : int):
+    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int, dropout_rate: float = 0.3):
         super().__init__()
 
         self.l_1 = nn.Linear(input_dim, hidden_dim)
         self.l_2 = nn.Linear(hidden_dim, output_dim)
-        self.relu = nn.ReLU()
+        self.gelu = nn.GELU()
+        self.dropout = nn.Dropout(dropout_rate)
 
     def forward(self, x):
         """
-        Forward pass through the feed-forward network. Applies a linear transformation followed by a ReLU activation
-        and another linear transformation.
+        Forward pass through the feed-forward network. Applies a linear transformation followed by a GELU activation,
+        a dropout layer, and another linear transformation followed by GELU activation and dropout.
 
         Args:
             x (torch.Tensor): Input tensor of shape [batch size, feature dimension].
@@ -126,7 +135,13 @@ class FFN(nn.Module):
         Returns:
             torch.Tensor: Output tensor of shape [batch size, output dimension].
         """
-        return self.l_2(self.relu(self.l_1(x)))
+        x = self.l_1(x)
+        x = self.gelu(x)
+        x = self.dropout(x)
+        x = self.l_2(x)
+        x = self.gelu(x)
+        x = self.dropout(x)
+        return x
 
 class EncoderBlock(nn.Module):
     def __init__(self, input_dim, hidden_dim, outuput_dim, head, dropout):
@@ -158,7 +173,7 @@ class EncoderBlock(nn.Module):
         return x
 
 class ViT(nn.Module):
-    def __init__(self, input_dim=(3, 320, 320), patch_size=8, layers=12, d_model=512, head=4, num_classes=12):
+    def __init__(self, input_dim=(3, 64, 64), patch_size=8, layers=12, d_model=512, head=12, num_classes=12):
         super().__init__()
 
         self.d_model = d_model
@@ -166,7 +181,7 @@ class ViT(nn.Module):
         self.patch_size = patch_size
         self.input_dim = input_dim
         self.layers = layers
-        self.dropout = 0.1
+        self.dropout = 0.3
 
         self.patch_embed = PatchEmbeddingConv(input_channels=input_dim[0], patch_size=patch_size, d_model=self.d_model)
 
