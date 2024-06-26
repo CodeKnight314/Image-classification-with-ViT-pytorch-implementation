@@ -45,7 +45,7 @@ class ImgClsDataset(Dataset):
     def __getitem__(self, index):
         img_path, img_id = self.images[index]
         img = self.transforms(Image.open(img_path).convert("RGB"))
-        return img.to(configs.device), img_id
+        return img, img_id
 
     def __len__(self):
         return len(self.images)

@@ -2,7 +2,6 @@ import argparse
 from models.ViT import get_ViT
 from models.ResNet import get_ResNet18, get_ResNet34
 from dataset import load_dataset
-from loss import CrossEntropyLoss
 from utils.log_writer import LOGWRITER
 import torch
 import torch.optim as opt
@@ -12,6 +11,7 @@ import configs
 import numpy as np
 from collections import Counter
 from sklearn.metrics import precision_score, recall_score, accuracy_score
+import torch.multiprocessing as mp
 
 def classification(model, optimizer, scheduler, train_dl, valid_dl, logger, loss_fn, epochs, device='cuda'):
     best_loss = float('inf')
@@ -98,7 +98,7 @@ def main():
     print(f"[INFO] Validation Dataloader loaded with {len(valid_dl)} batches.")
     print(f"[INFO] Total number of classes: {configs.num_class}")
 
-    loss_fn = CrossEntropyLoss()
+    loss_fn = torch.nn.CrossEntropyLoss()
     print("[INFO] Cross Entropy Function loaded.")
 
     if args.model == "ViT":
@@ -152,4 +152,5 @@ def main():
                        epochs=args.epochs)
 
 if __name__ == "__main__":
+    mp.set_start_method('spawn')
     main()

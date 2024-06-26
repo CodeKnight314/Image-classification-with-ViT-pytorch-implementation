@@ -41,23 +41,6 @@ class PatchEmbeddingConv(nn.Module):
         x = x.permute(0, 2, 1)
         return x
 
-class SEBlock(nn.Module): 
-    def __init__(self, channel, reduction=16):
-        super(SEBlock, self).__init__()
-        self.fc = nn.Sequential(
-            nn.Linear(channel, channel // reduction, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Linear(channel // reduction, channel, bias=False),
-            nn.Sigmoid()
-        )
-
-    def forward(self, x):
-        b, n, c = x.size()  
-        y = x.mean(dim=1)
-        y = self.fc(y)
-        y = y.view(b, 1, c)
-        return x * y.expand_as(x)
-
 class MSA(nn.Module):
     def __init__(self, d_model : int, head : int):
         assert d_model % head == 0, f"[Error] d_model {d_model} is not divisible by head {head} in MSA Module"
@@ -149,8 +132,6 @@ class EncoderBlock(nn.Module):
 
         self.msa = MSA(d_model=input_dim, head=head)
         self.ffn = FFN(input_dim=input_dim, hidden_dim=hidden_dim, output_dim=outuput_dim)
-        self.se_msa = SEBlock(input_dim, 8)
-        self.se_ffn = SEBlock(outuput_dim, 8)
         self.l_norm_1 = nn.LayerNorm(input_dim)
         self.l_norm_2 = nn.LayerNorm(outuput_dim)
         self.dropout = nn.Dropout(dropout)
@@ -167,9 +148,7 @@ class EncoderBlock(nn.Module):
             torch.Tensor: The output tensor from the encoder block after processing.
         """
         x = x + self.l_norm_1(self.msa(x, x, x))
-        x = self.se_msa(x)
         x = x + self.l_norm_2(self.ffn(x))
-        x = self.se_ffn(x)
         return x
 
 class ViT(nn.Module):
