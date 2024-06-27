@@ -210,10 +210,10 @@ class ViT(nn.Module):
         return self.classifier_head(x[:, 0, :])
     
 def get_ViT(input_dim: Tuple[int] = (3, configs.img_height, configs.img_width), 
-            patch_size=configs.ViT_patches, 
-            layers: int = configs.ViT_layers, 
-            d_model : int = configs.ViT_d_model, 
-            head : int = configs.ViT_head,
+            patch_size=8, 
+            layers: int = 12, 
+            d_model : int = 512, 
+            head : int = 8,
             num_classes = configs.num_class, device: str = configs.device) -> ViT:
     """
     Helper function for getting VIT with configured parameters.
