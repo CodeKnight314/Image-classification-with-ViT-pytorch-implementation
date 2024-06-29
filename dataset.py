@@ -6,6 +6,7 @@ from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as T
 from glob import glob
 import configs
+from tqdm import tqdm
 
 class ImgClsDataset(Dataset):
     def __init__(self, root_dir, img_height, img_width, mode, transforms = None):
