@@ -1,0 +1,10 @@
+{
+    "optimizer":"AdamW",
+    "lr":1e-3,
+    "weight decay":1e-3,
+    "scheduler":"StepLR",
+    "step_size":50,
+    "gamma":0.5,
+    "epochs":100,
+    "warmup":0
+}
