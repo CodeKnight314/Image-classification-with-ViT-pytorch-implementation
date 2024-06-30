@@ -87,7 +87,7 @@ def main():
     parser.add_argument('--model', type=str, required=True, choices=['ViT', 'ResNet18', 'ResNet34'], help='Model name')
     parser.add_argument('--model_save_path', type=str, help='Path to save or load model weights')
     parser.add_argument('--root_dir', type=str, required=True, help="Root directory to Dataset. Must contain a train and test folder in root directory.")
-    parser.add_argument('--config_file', type=str, default='config.json', help='Path to configuration file')
+    parser.add_argument('--config_file', type=str, required=True, default='config.json', help='Path to configuration file')
 
     args = parser.parse_known_args()
     
