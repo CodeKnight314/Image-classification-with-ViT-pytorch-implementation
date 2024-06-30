@@ -14,10 +14,10 @@ from sklearn.metrics import precision_score, recall_score, accuracy_score
 import torch.multiprocessing as mp
 import json
 
-def load_config(model_name, config_file):
+def load_config(config_file):
     with open(config_file, 'r') as f:
         config = json.load(f)
-    return config.get(model_name, {})
+    return config
 
 def classification(model, optimizer, scheduler, train_dl, valid_dl, logger, loss_fn, epochs, warmup, device='cuda'):
     best_loss = float('inf')
@@ -88,9 +88,9 @@ def main():
     parser.add_argument('--root_dir', type=str, required=True, help="Root directory to Dataset. Must contain a train and test folder in root directory.")
     parser.add_argument('--config_file', type=str, required=True, default='config.json', help='Path to configuration file')
 
-    args = parser.parse_known_args()
+    args = parser.parse_args()
     
-    model_config = load_config(args.model, args.config_file)
+    model_config = load_config(args.config_file)
 
     train_dl = load_dataset(root_dir=args.root_dir, mode="train")
     valid_dl = load_dataset(root_dir=args.root_dir, mode="val")
@@ -102,7 +102,8 @@ def main():
     print("[INFO] Cross Entropy Function loaded.")
 
     if args.model == "ViT":
-        model = get_ViT(patch_size=model_config.get("patch_size"), 
+        model = get_ViT(input_dim=(3, configs.img_height, configs.img_width),
+                        patch_size=model_config.get("patch_size"), 
                         layers=model_config.get("layers"), 
                         d_model=model_config.get("d_model"), 
                         head=model_config.get("head"), 
@@ -131,18 +132,18 @@ def main():
         optimizer = opt.AdamW(model.parameters(), lr=model_config.get("lr"), weight_decay=model_config.get("weight decay"))
     elif model_config.get("optimizer") == 'SGD':
         optimizer = opt.SGD(model.parameters(), lr=model_config.get("lr"), weight_decay=model_config.get("weight decay"), momentum=0.9)
-    print(f"[INFO] Optimizer loaded with learning rate: {model_config.get("lr")}.")
+    print(f"[INFO] Optimizer loaded with learning rate: {model_config.get('lr')}.")
 
     if model_config.get("scheduler") == 'CosineAnnealingLR':
         scheduler = opt.lr_scheduler.CosineAnnealingLR(optimizer, T_max=model_config.get("t_max"), eta_min=model_config.get("eta_min"))
     elif model_config.get("scheduler") == 'StepLR':
         scheduler = opt.lr_scheduler.StepLR(optimizer, step_size=model_config.get("step_size"), gamma=model_config.get("gamma"))
-    print(f"[INFO] {model_config.get("scheduler")} Scheduler loaded.")
+    print(f"[INFO] {model_config.get('scheduler')} Scheduler loaded.")
 
-    logger = LOGWRITER(output_directory=configs.log_output_dir, total_epochs=args.epochs)
+    logger = LOGWRITER(output_directory=configs.log_output_dir, total_epochs=model_config.get('epochs'))
     print(f"[INFO] Log writer loaded and binded to {configs.log_output_dir}")
-    print(f"[INFO] Total epochs: {model_config.get("epochs")}")
-    print(f"[INFO] Warm Up Phase: {model_config.get("warm_up_epochs")} epochs")
+    print(f"[INFO] Total epochs: {model_config.get('epochs')}")
+    print(f"[INFO] Warm Up Phase: {model_config.get('warm_up_epochs')} epochs")
 
     configs.trial_directory()
 
