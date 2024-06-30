@@ -57,4 +57,4 @@ def load_dataset(root_dir=configs.root_dir, img_height = configs.img_height, img
     configs.num_class = len(ds.id_to_class_dict)
     configs.id_to_category_dict = ds.id_to_class_dict
     configs.category_to_id_dict = ds.class_to_id_dict
-    return DataLoader(dataset=ds, batch_size=batch_size, shuffle=shuffle, drop_last=True)
+    return DataLoader(dataset=ds, batch_size=batch_size, shuffle=shuffle, drop_last=True, num_workers=4)
