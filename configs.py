@@ -13,14 +13,14 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 root_dir = None
 
-img_height = 256
-img_width = 256
+img_height = 224
+img_width = 224
 
 transforms = None
 
 model_save_path = None
 
-batch_size = 128
+batch_size = 64
 
 warm_up_epochs = 10
 epochs = 125
