@@ -12,6 +12,12 @@ import numpy as np
 from collections import Counter
 from sklearn.metrics import precision_score, recall_score, accuracy_score
 import torch.multiprocessing as mp
+import json
+
+def load_config(model_name, config_file):
+    with open(config_file, 'r') as f:
+        config = json.load(f)
+    return config.get(model_name, {})
 
 def classification(model, optimizer, scheduler, train_dl, valid_dl, logger, loss_fn, epochs, device='cuda'):
     best_loss = float('inf')
@@ -55,7 +61,7 @@ def classification(model, optimizer, scheduler, train_dl, valid_dl, logger, loss
         no_preds_classes = [cls for cls in range(num_classes) if pred_counter[cls] == 0]
         if no_preds_classes:
             no_preds_class_names = [valid_dl.dataset.id_to_class_dict[cls] for cls in no_preds_classes]
-            print(f"[INFO] Classes with no predicted samples: {no_preds_class_names}")
+            print(f"[INFO] Classes with no predicted samples: {len(no_preds_class_names)}")
         
         precision = precision_score(all_labels, all_preds, average='macro', zero_division=0)
         recall = recall_score(all_labels, all_preds, average='macro', zero_division=0)
@@ -79,18 +85,13 @@ def main():
     parser = argparse.ArgumentParser(description='Train a model on CIFAR-10')
     parser.add_argument('--epochs', type=int, default=90, help='Number of epochs to train')
     parser.add_argument('--model', type=str, required=True, choices=['ViT', 'ResNet18', 'ResNet34'], help='Model name')
-    parser.add_argument('--patch_size', type=int, help="ViT Patch Size")
     parser.add_argument('--model_save_path', type=str, help='Path to save or load model weights')
     parser.add_argument('--root_dir', type=str, required=True, help="Root directory to Dataset. Must contain a train and test folder in root directory.")
-    parser.add_argument('--lr', type=float, default=1e-4, help='Learning rate')
-    parser.add_argument('--optimizer', type=str, default='AdamW', choices=['AdamW', 'SGD'], help='Optimizer to use')
-    parser.add_argument('--scheduler', type=str, default='CosineAnnealingLR', choices=['CosineAnnealingLR', 'StepLR'], help='Learning rate scheduler')
-    parser.add_argument('--t_max', type=int, default=80, help='T_max for CosineAnnealingLR')
-    parser.add_argument('--eta_min', type=float, default=1e-5, help='Eta_min for CosineAnnealingLR')
-    parser.add_argument('--step_size', type=int, default=30, help='Step size for StepLR')
-    parser.add_argument('--gamma', type=float, default=0.1, help='Gamma for StepLR')
+    parser.add_argument('--config_file', type=str, default='config.json', help='Path to configuration file')
 
-    args = parser.parse_args()
+    args = parser.parse_known_args()
+    
+    model_config = load_config(args.model, args.config_file)
 
     train_dl = load_dataset(root_dir=args.root_dir, mode="train")
     valid_dl = load_dataset(root_dir=args.root_dir, mode="val")
@@ -102,7 +103,11 @@ def main():
     print("[INFO] Cross Entropy Function loaded.")
 
     if args.model == "ViT":
-        model = get_ViT(patch_size=args.patch_size, num_classes=configs.num_class)
+        model = get_ViT(patch_size=model_config.get("patch_size"), 
+                        layers=model_config.get("layers"), 
+                        d_model=model_config.get("d_model"), 
+                        head=model_config.get("head"), 
+                        num_classes=configs.num_class)
         print("[INFO] ViT Model loaded with the following attributes:")
         print(f"[INFO] * Patch size: {model.patch_size}.")
         print(f"[INFO] * Number of layers: {model.layers}.")
@@ -123,17 +128,17 @@ def main():
         print("[INFO] Model weights provided. Loading model weights.")
         model.load_state_dict(torch.load(args.model_save_path))
     
-    if args.optimizer == 'AdamW':
-        optimizer = opt.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
-    elif args.optimizer == 'SGD':
-        optimizer = opt.SGD(model.parameters(), lr=args.lr, momentum=0.9)
-    print(f"[INFO] Optimizer loaded with learning rate: {args.lr}.")
+    if model_config.get("optimizer") == 'AdamW':
+        optimizer = opt.AdamW(model.parameters(), lr=model_config.get("lr"), weight_decay=model_config.get("weight decay"))
+    elif model_config.get("optimizer") == 'SGD':
+        optimizer = opt.SGD(model.parameters(), lr=model_config.get("lr"), weight_decay=model_config.get("weight decay"), momentum=0.9)
+    print(f"[INFO] Optimizer loaded with learning rate: {model_config.get("lr")}.")
 
-    if args.scheduler == 'CosineAnnealingLR':
-        scheduler = opt.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.t_max, eta_min=args.eta_min)
-    elif args.scheduler == 'StepLR':
-        scheduler = opt.lr_scheduler.StepLR(optimizer, step_size=args.step_size, gamma=args.gamma)
-    print(f"[INFO] {args.scheduler} Scheduler loaded.")
+    if model_config.get("scheduler") == 'CosineAnnealingLR':
+        scheduler = opt.lr_scheduler.CosineAnnealingLR(optimizer, T_max=model_config.get("t_max"), eta_min=model_config.get("eta_min"))
+    elif model_config.get("scheduler") == 'StepLR':
+        scheduler = opt.lr_scheduler.StepLR(optimizer, step_size=model_config.get("step_size"), gamma=model_config.get("gamma"))
+    print(f"[INFO] {model_config.get("scheduler")} Scheduler loaded.")
 
     logger = LOGWRITER(output_directory=configs.log_output_dir, total_epochs=args.epochs)
     print(f"[INFO] Log writer loaded and binded to {configs.log_output_dir}")

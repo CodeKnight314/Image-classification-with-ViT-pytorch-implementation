@@ -42,13 +42,15 @@ class PatchEmbeddingConv(nn.Module):
         return x
 
 class MSA(nn.Module):
-    def __init__(self, d_model : int, head : int):
+    def __init__(self, d_model : int, head : int, dropout : float = 0.3):
         assert d_model % head == 0, f"[Error] d_model {d_model} is not divisible by head {head} in MSA Module"
         super().__init__()
 
         self.d_model = d_model
         self.head = head
         self.d_k = d_model // head
+
+        self.dropout = nn.Dropout(dropout)
 
         self.W_Q = nn.Linear(self.d_model, self.d_k * self.head)
         self.W_K = nn.Linear(self.d_model, self.d_k * self.head)
@@ -71,6 +73,7 @@ class MSA(nn.Module):
         if Mask:
             attn_scores = attn_scores.masked_fill(Mask == 0, -1e9)
         QK_probs = torch.softmax(attn_score, dim = -1) # Scales the similarities between each query in Q to the entire set of Keys as probabilities
+        QK_probs = self.dropout(QK_probs)
         output = torch.matmul(QK_probs, Values) # Transforms values into weighted sums, reflecting importance of each value within Values
         return output
 
@@ -94,7 +97,7 @@ class MSA(nn.Module):
 
         scaled_values = self.scaled_dot_product(Queries=Q, Keys=K, Values=V, Mask=Mask).transpose(1, 2).contiguous().view(batch_size, -1, self.d_k * self.head)
 
-        context = self.W_O(scaled_values)
+        context = self.dropout(self.W_O(scaled_values))
 
         return context
 
@@ -223,77 +226,3 @@ def get_ViT(input_dim: Tuple[int] = (3, configs.img_height, configs.img_width),
     """
     
     return ViT(input_dim=input_dim, patch_size=patch_size, layers=layers, d_model=d_model, head=head, num_classes=num_classes).to(device)
-
-def objective_vit(trial):
-    """
-    Optuna hyperparameter tuning for ViT with the following parameters: 
-        * patch_size
-        * layers 
-        * heads
-        * d_model
-        * lr 
-        * weight decay
-    """
-    img_height = configs.img_height
-    img_width = configs.img_width
-    
-    possible_patch_sizes = [i for i in range(2, 9) if img_height % i == 0 and img_width % i == 0]
-
-    if not possible_patch_sizes:
-        raise ValueError("No valid patch sizes available")
-
-    patch_size = trial.suggest_categorical('patch_size', possible_patch_sizes)
-    layers = trial.suggest_int('layers', 4, 12)
-    d_model = trial.suggest_categorical('d_model', [128, 256, 384, 512])
-
-    head = trial.suggest_categorical('heads', [2, 4, 8])
-
-    lr_options = [1e-2, 5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-5]
-    weight_decay_options = [5e-3, 1e-3, 5e-4, 1e-4, 5e-5, 1e-6]
-
-    lr = trial.suggest_categorical('lr', lr_options)
-    weight_decay = trial.suggest_categorical('weight_decay', weight_decay_options)
-
-    train_loader = load_dataset(mode="train")
-    test_loader = load_dataset(mode="test")
-
-    model = get_ViT(input_dim=(3, img_height, img_width), patch_size=patch_size, layers=layers, d_model=d_model, head=head, num_classes=configs.num_class).to(configs.device)
-    optimizer = get_AdamW_optimizer(model, lr=lr, weight_decay=weight_decay)
-    criterion = nn.CrossEntropyLoss()
-
-    for epoch in tqdm(range(10), desc=f'Trial {trial.number+1}: Training', unit='epoch'):
-        total_train_loss = 0
-        for images, labels in train_loader:
-            images, labels = images.to(configs.device), labels.to(configs.device)
-            optimizer.zero_grad()
-            outputs = model(images)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
-            total_train_loss += loss.item()
-    
-    total_val_loss = 0
-    total_precision = 0
-    total_recall = 0
-    total_accuracy = 0
-    with torch.no_grad():
-        for images, labels in tqdm(test_loader, desc=f"Trial {trial.number + 1}: Validation"):
-            images, labels = images.to(configs.device), labels.to(configs.device)
-            outputs = model(images)
-            loss = criterion(outputs, labels)
-            total_val_loss += loss.item()
-            _, preds = torch.max(outputs, 1)
-            total_precision += (preds == labels).sum().item() / preds.size(0)
-            total_recall += (preds == labels).sum().item() / preds.size(0)
-            total_accuracy += (preds == labels).sum().item() / preds.size(0)
-
-    averaged_values = torch.tensor(total_accuracy / len(test_loader)).mean(dim=0)
-    return averaged_values
-
-if __name__ == '__main__':
-    study_vit = optuna.create_study(direction='maximize')
-    n_trials = 50  # Number of total trials to run
-    study_vit.optimize(objective_vit, n_trials=n_trials)
-
-    print('Best trial for ViT:')
-    print(study_vit.best_trial)
