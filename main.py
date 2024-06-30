@@ -19,7 +19,7 @@ def load_config(model_name, config_file):
         config = json.load(f)
     return config.get(model_name, {})
 
-def classification(model, optimizer, scheduler, train_dl, valid_dl, logger, loss_fn, epochs, device='cuda'):
+def classification(model, optimizer, scheduler, train_dl, valid_dl, logger, loss_fn, epochs, warmup, device='cuda'):
     best_loss = float('inf')
     model.to(device)
 
@@ -78,12 +78,11 @@ def classification(model, optimizer, scheduler, train_dl, valid_dl, logger, loss
         logger.write(epoch=epoch+1, tr_loss=avg_train_loss, val_loss=avg_val_loss,
                      precision=precision, recall=recall, accuracy=accuracy)
 
-        if epoch > configs.warm_up_epochs:
+        if epoch > warmup:
             scheduler.step()
 
 def main():
     parser = argparse.ArgumentParser(description='Train a model on CIFAR-10')
-    parser.add_argument('--epochs', type=int, default=90, help='Number of epochs to train')
     parser.add_argument('--model', type=str, required=True, choices=['ViT', 'ResNet18', 'ResNet34'], help='Model name')
     parser.add_argument('--model_save_path', type=str, help='Path to save or load model weights')
     parser.add_argument('--root_dir', type=str, required=True, help="Root directory to Dataset. Must contain a train and test folder in root directory.")
@@ -142,8 +141,8 @@ def main():
 
     logger = LOGWRITER(output_directory=configs.log_output_dir, total_epochs=args.epochs)
     print(f"[INFO] Log writer loaded and binded to {configs.log_output_dir}")
-    print(f"[INFO] Total epochs: {args.epochs}")
-    print(f"[INFO] Warm Up Phase: {configs.warm_up_epochs} epochs")
+    print(f"[INFO] Total epochs: {model_config.get("epochs")}")
+    print(f"[INFO] Warm Up Phase: {model_config.get("warm_up_epochs")} epochs")
 
     configs.trial_directory()
 
@@ -154,7 +153,8 @@ def main():
                        valid_dl=valid_dl, 
                        logger=logger, 
                        loss_fn=loss_fn, 
-                       epochs=args.epochs)
+                       epochs=model_config.get("epochs"),
+                       warmup=model_config.get("warmup"))
 
 if __name__ == "__main__":
     mp.set_start_method('spawn')
